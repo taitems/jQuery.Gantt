@@ -303,7 +303,7 @@
                             if (rm != month) {
                                 months.append(
 									$('<div class="row header month" style="width: '
-									+ tools.getCellSize() * daysInMonth + 'px"><div class="fn-label"/>'
+									+ tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
 									+ settings.months[month]
 									+ '</div></div>'));
                                 month = rm;
@@ -328,11 +328,11 @@
 
                                 daysStr += '<div class="row day ' + day_class2 + '" '
 								        + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
-								        + ' <div class="fn-label"/>' + day.getDate() + '</div></div>';
+								        + ' <div class="fn-label">' + day.getDate() + '</div></div>';
 
                                 dowStr += '<div class="row day ' + day_class2 + '" '
 								        + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
-								        + ' <div class="fn-label"/>' + settings.dow[getDay] + '</div></div>';
+								        + ' <div class="fn-label">' + settings.dow[getDay] + '</div></div>';
 
                                 day = rday;
                                 hoursInDay = 0;
@@ -353,7 +353,7 @@
                         */
                         years.html(years.html() +
 							'<div class="row header year" style="width: '
-							+ tools.getCellSize() * daysInYear + 'px;"><div class="fn-label"/>'
+							+ tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">'
 							+ year
 							+ '</div></div>');
                         /*
@@ -361,7 +361,7 @@
                         */
                         months.html(months.html() +
 							'<div class="row header month" style="width: '
-							+ tools.getCellSize() * daysInMonth + 'px"><div class="fn-label"/>'
+							+ tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
 							+ settings.months[month]
 							+ '</div></div>');
 
@@ -372,11 +372,11 @@
 
                         daysStr += '<div class="row day ' + day_class + '" '
 						        + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
-						        + ' <div class="fn-label"/>' + day.getDate() + '</div></div>';
+						        + ' <div class="fn-label">' + day.getDate() + '</div></div>';
 
                         dowStr += '<div class="row day ' + day_class + '" '
 						        + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
-						        + ' <div class="fn-label"/>' + settings.dow[day.getDay()] + '</div></div>';
+						        + ' <div class="fn-label">' + settings.dow[day.getDay()] + '</div></div>';
 
                         var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
 
@@ -455,7 +455,7 @@
                             */
                             daysStr += '<div class="row day wd" '
 									+ ' id="dh-' + rday.getFullYear() + '-' + rday.getWeekOfYear() + '"> '
-							        + ' <div class="fn-label"/>' + rday.getWeekOfYear() + '</div></div>';
+							        + ' <div class="fn-label">' + rday.getWeekOfYear() + '</div></div>';
                         }
 
                         /*
@@ -463,7 +463,7 @@
                         */
                         years.append(
 							'<div class="row header year" style="width: '
-							+ tools.getCellSize() * daysInYear + 'px;"><div class="fn-label"/>'
+							+ tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">'
 							+ year
 							+ '</div></div>');
                         /*
@@ -471,7 +471,7 @@
                         */
                         months.append(
 							'<div class="row header month" style="width: '
-							+ tools.getCellSize() * daysInMonth + 'px"><div class="fn-label"/>'
+							+ tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
 							+ settings.months[month]
 							+ '</div></div>');
 
@@ -623,10 +623,10 @@
 
                             daysStr += '<div class="row day ' + day_class + '" '
 							        + ' id="dh-' + tools.genId(rday.getTime()) + ' "> '
-							        + ' <div class="fn-label"/>' + rday.getDate() + '</div></div>';
+							        + ' <div class="fn-label">' + rday.getDate() + '</div></div>';
                             dowStr += '<div class="row day ' + day_class + '" '
 							        + ' id="dw-' + tools.genId(rday.getTime()) + '"> '
-							        + ' <div class="fn-label"/>' + settings.dow[getDay] + '</div></div>';
+							        + ' <div class="fn-label">' + settings.dow[getDay] + '</div></div>';
                         } //for
 
                         /*
