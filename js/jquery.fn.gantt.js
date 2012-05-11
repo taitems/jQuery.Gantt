@@ -139,7 +139,10 @@
                 element.dateEnd = tools.getMaxDate(element);
 
                 core.render(element);
-                core.waitToggle(element, true, function () { core.render(element); });
+                core.waitToggle(element, true, function () { 
+                    core.render(element);
+                    if (options.ready) options.ready();
+                });
             },
             render: function (element) {
                 var content = $('<div class="fn-content"/>');
