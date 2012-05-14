@@ -139,7 +139,7 @@
                 element.dateEnd = tools.getMaxDate(element);
 
                 core.render(element);
-                core.waitToggle(element, true, function () { 
+                core.waitToggle(element, true, function () {
                     core.render(element);
                     if (options.ready) options.ready();
                 });
@@ -268,7 +268,7 @@
                 var holidays = settings.holidays ? settings.holidays.join() : '';
 
                 switch (settings.scale) {
-                    // hours /////////////////////////////////////////////////////////////////////////////////////////    
+                    // hours /////////////////////////////////////////////////////////////////////////////////////////      
                     case "hours":
 
                         range = tools.parseTimeRange(element.dateStart, element.dateEnd, element.scaleStep);
@@ -410,7 +410,7 @@
 
                         break;
 
-                    // weeks /////////////////////////////////////////////////////////////////////////////////////////    
+                    // weeks /////////////////////////////////////////////////////////////////////////////////////////      
                     case "weeks":
                         range = tools.parseWeeksRange(element.dateStart, element.dateEnd);
 
@@ -502,7 +502,7 @@
 
 
                         break;
-                    // months ////////////////////////////////////////////////////////////////////////////////////////    
+                    // months ////////////////////////////////////////////////////////////////////////////////////////      
                     case 'months':
                         range = tools.parseMonthsRange(element.dateStart, element.dateEnd);
 
@@ -575,7 +575,7 @@
                         }
 
                         break;
-                    // days //////////////////////////////////////////////////////////////////////////////////////////    
+                    // days //////////////////////////////////////////////////////////////////////////////////////////      
                     default:
                         range = tools.parseDateRange(element.dateStart, element.dateEnd);
 
@@ -1150,9 +1150,11 @@
                 };
 
                 $(".fn-gantt .rightPanel .year, .fn-gantt .rightPanel .month").each(function (i, obj) {
-                    var objDim = { offset: $(obj).offset(),
-                        width: $(obj).width(),
-                        height: $(obj).height()
+                    var $obj = $(obj);
+
+                    var objDim = { offset: $obj.offset(),
+                        width: $obj.width(),
+                        height: $obj.height()
                     };
 
                     if (objDim.offset.left + objDim.width > wrapper.offset.left
@@ -1161,19 +1163,21 @@
                             left: objDim.offset.left > wrapper.offset.left ? objDim.offset.left : wrapper.offset.left,
                             right: objDim.offset.left + objDim.width < wrapper.offset.left + wrapper.width ? objDim.offset.left + objDim.width : wrapper.offset.left + wrapper.width
                         };
-                        $(obj).children(".fn-label").css("float", "left");
-                        var labelWidth = $(obj).children(".fn-label").width();
+                        $obj.children(".fn-label").css("float", "left");
+                        var labelWidth = $obj.children(".fn-label").width();
 
                         var objMarg = objDim.offset.left < wrapper.offset.left ? wrapper.offset.left - objDim.offset.left : 0;
                         if (viewArea.right - viewArea.left > labelWidth)
-                            $(obj).children(".fn-label")
+                            $obj.children(".fn-label")
 						    		.css("margin-left", objMarg + (viewArea.right - viewArea.left) / 2 - labelWidth / 2 + "px");
                     }
                 });
                 $(".fn-gantt .rightPanel .bar").each(function (i, obj) {
-                    var objDim = { offset: $(obj).offset(),
-                        width: $(obj).width(),
-                        height: $(obj).height()
+                    var $obj = $(obj);
+
+                    var objDim = { offset: $obj.offset(),
+                        width: $obj.width(),
+                        height: $obj.height()
                     };
 
                     if (objDim.offset.left + objDim.width > wrapper.offset.left
@@ -1182,12 +1186,12 @@
                             left: objDim.offset.left > wrapper.offset.left ? objDim.offset.left : wrapper.offset.left,
                             right: objDim.offset.left + objDim.width < wrapper.offset.left + wrapper.width ? objDim.offset.left + objDim.width : wrapper.offset.left + wrapper.width
                         };
-                        $(obj).children(".fn-label").css("float", "left");
-                        var labelWidth = $(obj).children(".fn-label").width();
+                        $obj.children(".fn-label").css("float", "left");
+                        var labelWidth = $obj.children(".fn-label").width();
 
                         var objMarg = objDim.offset.left < wrapper.offset.left ? wrapper.offset.left - objDim.offset.left : 0;
                         if (viewArea.right - viewArea.left > labelWidth)
-                            $(obj).children(".fn-label")
+                            $obj.children(".fn-label")
 						    		.css("margin-left", objMarg + (viewArea.right - viewArea.left) / 2 - labelWidth / 2 + "px");
                     }
                 });
