@@ -1385,7 +1385,7 @@
                 return ret;
             },
             getPageHeight: function (element) {
-                return element.pageNum + 1 === element.pageCount ? rowsOnLastPage * tools.getCellSize() : settings.itemsPerPage * tools.getCellSize();
+                return element.pageNum + 1 === element.pageCount ? element.rowsOnLastPage * tools.getCellSize() : settings.itemsPerPage * tools.getCellSize();
             },
             _getProgressBarMargin: null,
             getProgressBarMargin: function () {
