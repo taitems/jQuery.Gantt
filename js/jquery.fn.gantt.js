@@ -259,13 +259,15 @@
                 var entries = [];
                 $.each(element.data, function (i, entry) {
                     if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-                        entries.push('<div class="row name row' + i + '" id="rowheader' + i + '" offset="' + i * tools.getCellSize() + '">');
-                        entries.push('<span class="fn-label ' + entry.cssClass + '">' + entry.name + '</span>');
+                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + i * tools.getCellSize() + '">');
+                        entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
                         entries.push('</div>');
 
-                        entries.push('<div class="row desc row' + i + ' " id="RowdId_' + i + '" data-id="' + entry.id + '">');
-                        entries.push('<span class="fn-label ' + entry.cssClass + '">' + entry.desc + '</span>');
-                        entries.push('</div>');
+                        if (entry.desc) {
+                            entries.push('<div class="row desc row' + i + ' " id="RowdId_' + i + '" data-id="' + entry.id + '">');
+                            entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.desc + '</span>');
+                            entries.push('</div>');
+                        }
 
                     }
                 });
@@ -363,7 +365,7 @@
                 var holidays = settings.holidays ? settings.holidays.join() : '';
 
                 switch (settings.scale) {
-                    // hours /////////////////////////////////////////////////////////////////////////////////////////                      
+                    // hours /////////////////////////////////////////////////////////////////////////////////////////
                     case "hours":
 
                         range = tools.parseTimeRange(element.dateStart, element.dateEnd, element.scaleStep);
@@ -488,7 +490,7 @@
 
                         break;
 
-                    // weeks /////////////////////////////////////////////////////////////////////////////////////////                      
+                    // weeks /////////////////////////////////////////////////////////////////////////////////////////
                     case "weeks":
                         range = tools.parseWeeksRange(element.dateStart, element.dateEnd);
                         yearArr = ['<div class="row"/>'];
@@ -561,7 +563,7 @@
 
 
                         break;
-                    // months ////////////////////////////////////////////////////////////////////////////////////////                      
+                    // months ////////////////////////////////////////////////////////////////////////////////////////
                     case 'months':
                         range = tools.parseMonthsRange(element.dateStart, element.dateEnd);
 
@@ -620,7 +622,7 @@
 
 
                         break;
-                    // days //////////////////////////////////////////////////////////////////////////////////////////                      
+                    // days //////////////////////////////////////////////////////////////////////////////////////////
                     default:
                         range = tools.parseDateRange(element.dateStart, element.dateEnd);
 
@@ -1063,7 +1065,7 @@
                                     datapanel.append(_bar);
                                     break;
 
-                                // Days                  
+                                // Days
                                 default:
                                     var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
                                     var dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
