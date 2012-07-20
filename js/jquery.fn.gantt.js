@@ -421,7 +421,7 @@
 
                                 var day_class2 = (today - day === 0) ? ' today' : (holidays.indexOf(getTime) > -1) ? "holiday" : dowClass[getDay];
 
-                                dayArr.push('<div class="row day ' + day_class2 + '" '
+                                dayArr.push('<div class="row date ' + day_class2 + '" '
                                         + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                         + ' <div class="fn-label">' + day.getDate() + '</div></div>');
                                 dowArr.push('<div class="row day ' + day_class2 + '" '
@@ -466,7 +466,7 @@
                             day_class = "holiday";
                         }
 
-                        dayArr.push('<div class="row day ' + day_class + '" '
+                        dayArr.push('<div class="row date ' + day_class + '" '
                                 + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                 + ' <div class="fn-label">' + day.getDate() + '</div></div>');
 
@@ -666,7 +666,7 @@
                                 day_class = "holiday";
                             }
 
-                            dayArr.push('<div class="row day ' + day_class + '" '
+                            dayArr.push('<div class="row date ' + day_class + '" '
                                     + ' id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate() + '> '
                                     + ' <div class="fn-label">' + rday.getDate() + '</div></div>');
                             dowArr.push('<div class="row day ' + day_class + '" '
@@ -977,7 +977,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 3 + 2 + parseInt(topEl.attr("offset"),10);
+                                    var top = tools.getCellSize() * 5 + 2 + parseInt(topEl.attr("offset"),10);
                                     _bar.css({ 'margin-top': top, 'margin-left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
