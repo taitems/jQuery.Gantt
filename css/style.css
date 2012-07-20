@@ -101,7 +101,7 @@
     background-repeat: repeat;
     background-position: 24px 24px;
 }
-.fn-gantt .day {
+.fn-gantt .day, .fn-gantt .date {
     overflow: visible;
     width: 24px;
     line-height: 24px;
