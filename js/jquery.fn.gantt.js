@@ -421,7 +421,7 @@
 
                                 var day_class2 = (today - day === 0) ? ' today' : (holidays.indexOf(getTime) > -1) ? "holiday" : dowClass[getDay];
 
-                                dayArr.push('<div class="row day ' + day_class2 + '" '
+                                dayArr.push('<div class="row date ' + day_class2 + '" '
                                         + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                         + ' <div class="fn-label">' + day.getDate() + '</div></div>');
                                 dowArr.push('<div class="row day ' + day_class2 + '" '
@@ -466,7 +466,7 @@
                             day_class = "holiday";
                         }
 
-                        dayArr.push('<div class="row day ' + day_class + '" '
+                        dayArr.push('<div class="row date ' + day_class + '" '
                                 + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                 + ' <div class="fn-label">' + day.getDate() + '</div></div>');
 
