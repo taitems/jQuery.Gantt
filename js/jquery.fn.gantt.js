@@ -22,6 +22,8 @@
             useCookie: false,
             maxScale: "months",
             minScale: "hours",
+            minDate: null,
+            maxDate: new Date(),
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
@@ -1377,7 +1379,7 @@
         var tools = {
 
             getMaxDate: function (element) {
-                var maxDate = null;
+                var maxDate = settings.maxDate;
                 $.each(element.data, function (i, entry) {
                     $.each(entry.values, function (i, date) {
                         maxDate = maxDate < tools.dateDeserialize(date.to) ? tools.dateDeserialize(date.to) : maxDate;
@@ -1408,7 +1410,7 @@
                 return maxDate;
             },
             getMinDate: function (element) {
-                var minDate = null;
+                var minDate = settings.minDate;
                 $.each(element.data, function (i, entry) {
                     $.each(entry.values, function (i, date) {
                         minDate = minDate > tools.dateDeserialize(date.from) || minDate === null ? tools.dateDeserialize(date.from) : minDate;
