@@ -435,9 +435,17 @@ values: [{
 		$(function() {
 
 			"use strict";
-
 			$(".gantt").gantt({
 				source: [{
+    				name: "Daylight Saving Time",
+    				desc: "Fix",
+    				values: [{
+    					from: "/Date(1349067600000)/",
+    					to: "/Date(1353391200000)/",
+    					label: "Daylight Saving Time", 
+    					customClass: "ganttOrange"
+    				}]
+    			},{
 					name: "Sprint 0",
 					desc: "Analysis",
 					values: [{

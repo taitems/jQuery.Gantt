@@ -1433,13 +1433,18 @@
                 }
                 return minDate;
             },
+            daylightSavingAdjust: function(date){
+                if (!date) return null;
+                date.setHours(date.getHours() > 12 ? date.getHours() + 2 : 0);
+                return date;  
+            },
             parseDateRange: function (from, to) {
                 var current = new Date(from.getTime());
                 var end = new Date(to.getTime());
                 var ret = [];
                 var i = 0;
                 do {
-                    ret[i++] = new Date(current.getTime());
+                    ret[i++] = tools.daylightSavingAdjust(new Date(current.getTime()));                    
                     current.setDate(current.getDate() + 1);
                 } while (current.getTime() <= to.getTime());
                 return ret;
