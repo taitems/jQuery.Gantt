@@ -27,6 +27,7 @@
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
+            onPreRender: function(data){return;},
             onRender: function() { return; },
             scrollToToday: true
         };
@@ -184,6 +185,7 @@
                 core.waitToggle(element, true, function () { core.render(element); });
             },
             render: function (element) {
+            	settings.onPreRender();
                 var content = $('<div class="fn-content"/>');
                 var $leftPanel = core.leftPanel(element);
                 content.append($leftPanel);
