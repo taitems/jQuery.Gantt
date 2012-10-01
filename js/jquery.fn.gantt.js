@@ -13,6 +13,7 @@
         var settings = {
             source: null,
             itemsPerPage: 7,
+            enablePagination: true,
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
             dow: ["S", "M", "T", "W", "T", "F", "S"],
             startPos: new Date(),
@@ -167,6 +168,9 @@
             },
             init: function (element) {
                 element.rowsNum = element.data.length;
+                if(settings.enablePagination !== true){
+                	settings.itemsPerPage = element.rowsNum;
+                }
                 element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
                 element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
 
