@@ -99,6 +99,7 @@
 }
 
 .fn-gantt .dataPanel {
+    position: relative;
     margin-left: 0px;
     border-right: 1px solid #DDD;
     background-image: url(../img/grid.png);
@@ -416,3 +417,165 @@
     clear: both;
 }
 
+/* Dependencies */
+
+.gantt .dep{
+    position: absolute;
+    /*background: red;*/
+    overflow: visible;
+
+}
+.gantt .depLine{
+    background: black;
+    position: absolute;
+}
+.gantt .dep .depLine1{
+    height: 1px;
+
+}
+
+.gantt .dep .depLine4{
+    width: 1px;
+}
+.gantt .dep .depLine5{
+    height: 1px;
+}
+.gantt .dep .depLine5:before{
+    content: '';
+    display: inline-block;
+    border-left:   3px solid black;
+    border-bottom:  3px solid transparent;
+    border-top: 3px solid transparent;
+    position: absolute;
+    bottom: -3px;
+    right: -1px;
+}
+
+/* Bypassing the target bar by the left ( up or down direction) */
+.gantt .dep.left .depLine1,
+.gantt .dep.left .depLine5{
+    width: 4px;
+}
+.gantt .dep.left .depLine2{
+    height: 50%;
+    width: 1px;
+}
+.gantt .dep.left .depLine3{
+    width: 100%;
+    height: 1px;
+    top: 50%;
+}
+.gantt .dep.left .depLine4{
+    height: 50%;
+    top: 50%;
+}
+
+
+/* Left down */
+.gantt .dep.left.down .depLine1{
+    top: 0;
+    right: 0;
+}
+.gantt .dep.left.down .depLine2{
+    right: 0;
+    top: 0;
+}
+.gantt .dep.left.down .depLine3{
+    right: 0;
+}
+
+.gantt .dep.left.down .depLine4{
+    left: 0;
+}
+.gantt .dep.left.down .depLine5{
+    left: 0;
+    bottom: 0;
+}
+.gantt .dep.left.down .depLine5:before{
+    right: -1px;
+}
+
+/* Left up */
+.gantt .dep.left.up .depLine1{
+    bottom: 0;
+    right: 0;
+}
+.gantt .dep.left.up .depLine2{
+    right: 0;
+    bottom: 0;
+}
+.gantt .dep.left.up .depLine3{
+    left: 0;
+}
+.gantt .dep.left.up .depLine4{
+    left: 0;
+    top: 0;
+}
+.gantt .dep.left.up .depLine5{
+    left: 0;
+    top: -1px;
+}
+
+/* right */
+.gantt .dep.right .depLine2,
+.gantt .dep.right .depLine3{
+    display: none;
+}
+
+/* right down */
+.gantt .dep.right.down .depLine1{
+    top: 0;
+    left: 0;
+    width: 50%;
+}
+.gantt .dep.right.down .depLine4{
+    left: 50%;
+    height: 100%;
+    top: 0;
+}
+.gantt .dep.right.down .depLine5{
+    right: 0;
+    bottom: 0;
+    width: 50%;
+}
+.gantt .dep.right.down .depLine5:before{
+    right: 0;
+}
+
+/* Right up*/
+.gantt .dep.right.up .depLine1{
+    bottom: -1px;
+    left: 0;
+    width: 50%;
+    margin-left: 1px;
+}
+.gantt .dep.right.up .depLine4{
+    height: 100%;
+    top: 0;
+    left: 50%;
+}
+.gantt .dep.right.up .depLine5{
+    right: 0;
+    top: -1px;
+    width: 50%;
+}
+.gantt .dep.right.up .depLine5:before{
+    right: 0;
+}
+
+
+
+
+/*&:after {*/
+/*content: '';*/
+    /*display: inline-block;*/
+    /*border-left:   6px solid transparent;*/
+    /*border-right:  6px solid transparent;*/
+    /*border-top: 6px solid darken(#4f7aa8, 10%);*/
+    /*position: absolute;*/
+    /*bottom: -6px;*/
+    /*left: 50%;*/
+    /*margin-left: -6px;*/
+/*}*/
+
+/*}*/
