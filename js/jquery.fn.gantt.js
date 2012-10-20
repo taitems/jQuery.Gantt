@@ -24,6 +24,7 @@
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
+            onDepClicked: function (data) { return; },
             onRender: function() { return; },
             scrollToToday: true
         };
@@ -246,6 +247,14 @@
                         core.repositionLabel(element);
                     }
                 }
+//                $dataPanel
+//                  .delegate("div.depLine", "mouseover",  function(e){
+//                    console.log(this);
+//                    $(this).parent().addClass("hover");
+//                  })
+//                  .delegate("div.depLine", "mouseout", function(e){
+//                    $(this).parent().removeClass("hover");
+//                  })
 
                 $dataPanel.css({ height: $leftPanel.height() });
                 core.waitToggle(element, false);
@@ -1162,8 +1171,19 @@
 
                             var $dep = core.createDependency(p1, p2,dep,day.id );
                             $(datapanel).append($dep);
+                            $dep
+                              .delegate("div.depLine", "mouseover",  function(e){
+                                console.log(this);
+                                $(this).parent().addClass("hover");
+                              })
+                              .delegate("div.depLine", "mouseout", function(e){
+                                $(this).parent().removeClass("hover");
+                              })
+                              .delegate("div.depLine", 'click', function(e){
+                                e.stopPropagation();
+                                settings.onDepClicked.apply($(this).parent(),[day, dep])
+                              })
                           }
-
                         })
                       }
                     })

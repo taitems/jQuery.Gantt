@@ -441,51 +441,60 @@ values: [{
 					name: "Sprint 0",
 					desc: "Analysis",
 					values: [{
-						from: "/Date(1320192000000)/",
-						to: "/Date(1322401600000)/",
-						label: "Requirement Gathering", 
+                        id: "t1",
+                        dep: "t2",
+						from: "/Date(1325685200000)/",
+						to: "/Date(1326785200000)/",
+						label: "T1",
 						customClass: "ganttRed"
 					}]
 				},{
 					name: " ",
 					desc: "Scoping",
 					values: [{
+                        id: "t2",
 						from: "/Date(1322611200000)/",
 						to: "/Date(1323302400000)/",
-						label: "Scoping", 
+						label: "T2",
 						customClass: "ganttRed"
 					}]
 				},{
 					name: "Sprint 1",
 					desc: "Development",
 					values: [{
+                        id: "t3",
+                        dep: "t2",
 						from: "/Date(1323802400000)/",
 						to: "/Date(1325685200000)/",
-						label: "Development", 
+						label: "T3",
 						customClass: "ganttGreen"
 					}]
 				},{
 					name: " ",
 					desc: "Showcasing",
 					values: [{
-						from: "/Date(1325685200000)/",
-						to: "/Date(1325695200000)/",
-						label: "Showcasing", 
+                        id: "t4",
+                        dep: ["t3","t5"],
+						from: "/Date(1326785200000)/",
+						to: "/Date(1325785200000)/",
+						label: "T4",
 						customClass: "ganttBlue"
 					}]
 				},{
 					name: "Sprint 2",
-					desc: "Development",
+					desc: "Development 2",
 					values: [{
+                        id: "t5",
 						from: "/Date(1326785200000)/",
 						to: "/Date(1325785200000)/",
-						label: "Development", 
+						label: "T5",
 						customClass: "ganttGreen"
 					}]
 				},{
 					name: " ",
-					desc: "Showcasing",
+					desc: "Showcasing 2",
 					values: [{
+                        id: "t6",
 						from: "/Date(1328785200000)/",
 						to: "/Date(1328905200000)/",
 						label: "Showcasing", 
@@ -495,6 +504,7 @@ values: [{
 					name: "Release Stage",
 					desc: "Training",
 					values: [{
+                        id: "t7",
 						from: "/Date(1330011200000)/",
 						to: "/Date(1336611200000)/",
 						label: "Training", 
@@ -504,6 +514,7 @@ values: [{
 					name: " ",
 					desc: "Deployment",
 					values: [{
+                        id: "t8",
 						from: "/Date(1336611200000)/",
 						to: "/Date(1338711200000)/",
 						label: "Deployment", 
@@ -513,6 +524,7 @@ values: [{
 					name: " ",
 					desc: "Warranty Period",
 					values: [{
+                        id: "t9",
 						from: "/Date(1336611200000)/",
 						to: "/Date(1349711200000)/",
 						label: "Warranty Period", 
@@ -522,7 +534,7 @@ values: [{
 				navigate: "scroll",
 				scale: "weeks",
 				maxScale: "months",
-				minScale: "days",
+				minScale: "hours",
 				itemsPerPage: 10,
 				onItemClick: function(data) {
 					alert("Item clicked - show some details");
@@ -530,6 +542,9 @@ values: [{
 				onAddClick: function(dt, rowId) {
 					alert("Empty space clicked - add an item!");
 				},
+                onDepClicked: function(day, dep){
+                    alert("Dependency #"+$(this).attr('id')+" between " + day.id  + " and "+ dep+ " clicked");
+                },
 				onRender: function() {
 					if (window.console && typeof console.log === "function") {
 						console.log("chart rendered");
