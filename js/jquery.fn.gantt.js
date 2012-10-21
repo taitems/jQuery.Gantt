@@ -24,6 +24,7 @@
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
+            onDepClicked: function (data) { return; },
             onRender: function() { return; },
             scrollToToday: true
         };
@@ -246,6 +247,14 @@
                         core.repositionLabel(element);
                     }
                 }
+//                $dataPanel
+//                  .delegate("div.depLine", "mouseover",  function(e){
+//                    console.log(this);
+//                    $(this).parent().addClass("hover");
+//                  })
+//                  .delegate("div.depLine", "mouseout", function(e){
+//                    $(this).parent().removeClass("hover");
+//                  })
 
                 $dataPanel.css({ height: $leftPanel.height() });
                 core.waitToggle(element, false);
@@ -888,10 +897,10 @@
                 }
                 return $('<div class="bottom"/>').append(ganttNavigate);
             },
-            createProgressBar: function (days, cls, desc, label, dataObj) {
+            createProgressBar: function (days, cls, desc, label, dataObj, id) {
                 var cellWidth = tools.getCellSize();
                 var barMarg = tools.getProgressBarMargin() || 0;
-                var bar = $('<div class="bar"><div class="fn-label">' + label + '</div></div>')
+                var bar = $('<div id="'+ id +'" class="bar"><div class="fn-label">' + label + '</div></div>')
                         .addClass(cls)
                         .css({
                             width: ((cellWidth * days) - barMarg) + 5
@@ -920,6 +929,41 @@
                     settings.onItemClick($(this).data("dataObj"));
                 });
                 return bar;
+            },
+            createDependency: function(positionStart, positionEnd, idStart, idEnd){
+              var $dep = $('<div id="'+ idStart+'-'+idEnd+'Dep" class="dep"><div class="depLine depLine1"></div><div class="depLine depLine2"></div><div class="depLine depLine3"></div><div class="depLine depLine4"></div><div class="depLine depLine5"></div></div>');
+              var hDist = positionEnd.left - positionStart.left;
+              var vDist = positionEnd.top - positionStart.top
+
+              $dep.addClass( vDist > 0 ? "down" : "up")
+              $dep.addClass( hDist < 8 ? "left" : "right")
+
+              var css = {height: Math.abs(vDist)}
+
+              // vertical (left down/up with controlled width)
+              if (Math.abs(hDist) < 8 ){
+                $.extend(css,{left: positionStart.left -4, width: 8, top: positionStart.top})
+              }
+              else {
+                // down
+                if ( vDist > 0){
+                  $.extend(css,{top: positionStart.top})
+                }
+                // Up
+                else{
+                  $.extend(css,{top: positionEnd.top })
+                }
+                // left
+                if (hDist < 0){
+                  $.extend(css,{left: positionStart.left - Math.abs(hDist) - 5, width: Math.abs(hDist) + 9})
+                }
+                // Right
+                else {
+                  $.extend(css,{left: positionStart.left , width: Math.abs(hDist)})
+                }
+              }
+              return $dep.css(css)
+
             },
             markNow: function (element) {
                 switch (settings.scale) {
@@ -977,7 +1021,8 @@
                                                 day.customClass ? day.customClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
-                                                day.dataObj ? day.dataObj : null
+                                                day.dataObj ? day.dataObj : null,
+                                                day.id ? day.id : ''
                                             );
 
                                     // find row
@@ -1018,7 +1063,8 @@
                                              day.customClass ? day.customClass : "",
                                              day.desc ? day.desc : "",
                                              day.label ? day.label : "",
-                                            day.dataObj ? day.dataObj : null
+                                             day.dataObj ? day.dataObj : null,
+                                             day.id ? day.id : ''
                                         );
 
                                     // find row
@@ -1057,7 +1103,8 @@
                                         day.customClass ? day.customClass : "",
                                         day.desc ? day.desc : "",
                                         day.label ? day.label : "",
-                                        day.dataObj ? day.dataObj : null
+                                        day.dataObj ? day.dataObj : null,
+                                        day.id ? day.id : ''
                                     );
 
                                     // find row
@@ -1083,7 +1130,8 @@
                                                 day.customClass ? day.customClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
-                                                day.dataObj ? day.dataObj : null
+                                                day.dataObj ? day.dataObj : null,
+                                                day.id ? day.id : ''
                                         );
 
                                     // find row
@@ -1107,6 +1155,40 @@
 
                     }
                 });
+                // dependencies
+                $.each(element.data, function (i, entry) {
+                  if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
+                    $.each(entry.values, function (j, day) {
+                      if (day.id && day.dep){
+                        $.each($.map([day.dep], function(dep){ return dep }), function (j, dep) {
+                          var $e1 = $("#"+dep);
+                          var $e2 = $("#"+day.id);
+                          if ($e1.length && $e2.length){
+                            var pe1 = $e1.position(),
+                                pe2 = $e2.position();
+                            var p1 = {left: $e1.outerWidth() + tools.pxToInt($e1.css('marginLeft')), top: tools.pxToInt($e1.css('marginTop')) + $e1.outerHeight()/2 },
+                                p2 = {left: tools.pxToInt($e2.css('marginLeft')), top: tools.pxToInt($e2.css('marginTop'))+ $e2.outerHeight()/2 };
+
+                            var $dep = core.createDependency(p1, p2,dep,day.id );
+                            $(datapanel).append($dep);
+                            $dep
+                              .delegate("div.depLine", "mouseover",  function(e){
+                                console.log(this);
+                                $(this).parent().addClass("hover");
+                              })
+                              .delegate("div.depLine", "mouseout", function(e){
+                                $(this).parent().removeClass("hover");
+                              })
+                              .delegate("div.depLine", 'click', function(e){
+                                e.stopPropagation();
+                                settings.onDepClicked.apply($(this).parent(),[day, dep])
+                              })
+                          }
+                        })
+                      }
+                    })
+                  }
+                })
             },
 
             navigateTo: function (element, val) {
@@ -1499,7 +1581,10 @@
                 var date = eval("new" + dateStr.replace(/\//g, " "));
                 return new Date(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), date.getUTCHours(), date.getUTCMinutes());
             },
-
+            pxToInt: function(px){
+              var nb = parseInt((px+'').replace(/\D+/,''));
+              return (nb == NaN) ? 0 : nb
+            },
 
 
             genId: function (ticks) {
