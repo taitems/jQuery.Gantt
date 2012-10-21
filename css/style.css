@@ -450,6 +450,14 @@
     bottom: -3px;
     right: -1px;
 }
+.gantt .dep.hover .depLine{
+    background: red;
+    z-index: 1;
+}
+.gantt .dep.hover .depLine5:before{
+    border-left-color: red;
+}
+
 
 /* Bypassing the target bar by the left ( up or down direction) */
 .gantt .dep.left .depLine1,
