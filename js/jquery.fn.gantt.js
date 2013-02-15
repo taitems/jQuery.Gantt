@@ -742,8 +742,10 @@
 
                         dataPanel.append(yearArr.join(""));
                         dataPanel.append(monthArr.join(""));
-                        dataPanel.append($('<div class="row"/>').html(dayArr.join("")));
-                        dataPanel.append($('<div class="row"/>').html(dowArr.join("")));
+
+    					// Added "marign-left:0px" to fix days-row wrong displacement (1 day to the left)
+                        dataPanel.append($('<div class="row" style="margin-left:0px" />').html(dayArr.join("")));
+                        dataPanel.append($('<div class="row" style="margin-left:0px" />').html(dowArr.join("")));
 
                         break;
                 }
