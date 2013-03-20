@@ -178,6 +178,7 @@
 }
 
 .fn-gantt .bar {
+    cursor:pointer;
     background-color: #D0E4FD;
     height: 18px;
     margin: 4px 3px 3px 3px;
