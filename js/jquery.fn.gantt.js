@@ -46,6 +46,7 @@
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
             onRender: function() { return; },
+            onDataLoadFailed: function(data) { return; },
             scrollToToday: true
         };
 
@@ -216,16 +217,22 @@
             // Here we calculate the number of rows, pages and visible start
             // and end dates once the data is ready
             init: function (element) {
-                element.rowsNum = element.data.length;
-                element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
-                element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
+                try {
+                    element.rowsNum = element.data.length;
+                    element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
+                    element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
 
-                element.dateStart = tools.getMinDate(element);
-                element.dateEnd = tools.getMaxDate(element);
+                    element.dateStart = tools.getMinDate(element);
+                    element.dateEnd = tools.getMaxDate(element);
 
 
-                /* core.render(element); */
-                core.waitToggle(element, true, function () { core.render(element); });
+                    /* core.render(element); */
+                    core.waitToggle(element, true, function () { core.render(element); });
+                }
+                catch(e) {
+                    if ( element.data === null || (typeof element.data === 'object' && element.data.length === 0 ) )
+                        settings.onDataLoadFailed($(this).data("dataObj"));
+                }
             },
 
             // **Render the grid**
