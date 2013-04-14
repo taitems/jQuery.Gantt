@@ -230,11 +230,8 @@
 
 		// `getRepDate` returns the seconds since the epoch for a given date
 		// depending on the active scale
-		Date.prototype.genRepDate = function() {
-			var $this = $(this);
-			var settings = $this.data(pname);
-			
-			switch (settings.scale) {
+		Date.prototype.genRepDate = function(scale) {
+			switch (scale) {
 				case "hours":
 					return this.getTime();
 				case "weeks":
@@ -646,7 +643,7 @@
 							}
 							hoursInDay++;
 
-							horArr.push('<div class="row day ' + day_class + '" id="dh-' + rday.getTime() + '"  offset="' + i * tools.getCellSize() + '"  repdate="' + rday.genRepDate() + '"> ' + rday.getHours() + '</div>');
+							horArr.push('<div class="row day ' + day_class + '" id="dh-' + rday.getTime() + '"  offset="' + i * tools.getCellSize() + '"  repdate="' + rday.genRepDate(settings.scale) + '"> ' + rday.getHours() + '</div>');
 						}
 
 						// Last year
@@ -705,7 +702,7 @@
 							daysInMonth++;
 
 							// Fill weeks
-							dayArr.push('<div class="row day wd" ' + ' id="' + rday.getWeekId() + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate() + '"> ' + ' <div class="fn-label">' + rday.getWeekOfYear() + '</div></div>');
+							dayArr.push('<div class="row day wd" ' + ' id="' + rday.getWeekId() + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate(settings.scale) + '"> ' + ' <div class="fn-label">' + rday.getWeekOfYear() + '</div></div>');
 						}
 
 						// Last year
@@ -738,7 +735,7 @@
 								daysInYear = 0;
 							}
 							daysInYear++;
-							monthArr.push('<div class="row day wd" id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate() + '">' + (1 + rday.getMonth()) + '</div>');
+							monthArr.push('<div class="row day wd" id="dh-' + tools.genId(settings.scale,rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate(settings.scale) + '">' + (1 + rday.getMonth()) + '</div>');
 						}
 
 						// Last year
@@ -790,8 +787,8 @@
 								day_class = "holiday";
 							}
 
-							dayArr.push('<div class="row date ' + day_class + '" ' + ' id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate() + '> ' + ' <div class="fn-label">' + rday.getDate() + '</div></div>');
-							dowArr.push('<div class="row day ' + day_class + '" ' + ' id="dw-' + tools.genId(rday.getTime()) + '"  repdate="' + rday.genRepDate() + '"> ' + ' <div class="fn-label">' + settings.dow[getDay] + '</div></div>');
+							dayArr.push('<div class="row date ' + day_class + '" ' + ' id="dh-' + tools.genId(settings.scale,rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate(settings.scale) + '> ' + ' <div class="fn-label">' + rday.getDate() + '</div></div>');
+							dowArr.push('<div class="row day ' + day_class + '" ' + ' id="dw-' + tools.genId(settings.scale,rday.getTime()) + '"  repdate="' + rday.genRepDate(settings.scale) + '"> ' + ' <div class="fn-label">' + settings.dow[getDay] + '</div></div>');
 						}//for
 
 						// Last year
@@ -999,10 +996,10 @@
 							switch (settings.scale) {
 								// **Hourly data**
 								case "hours":
-									var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
+									var dFrom = tools.genId(settings.scale,tools.dateDeserialize(day.from).getTime(), element.scaleStep);
 									var from = $(element).find('#dh-' + dFrom);
 
-									var dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
+									var dTo = tools.genId(settings.scale,tools.dateDeserialize(day.to).getTime(), element.scaleStep);
 									var to = $(element).find('#dh-' + dTo);
 
 									var cFrom = from.attr("offset");
@@ -1080,9 +1077,9 @@
 										dtTo.setDate(dtTo.getDate() + 4);
 									}
 
-									var from = $(element).find("#dh-" + tools.genId(dtFrom.getTime()));
+									var from = $(element).find("#dh-" + tools.genId(settings.scale,dtFrom.getTime()));
 									var cFrom = from.attr("offset");
-									var to = $(element).find("#dh-" + tools.genId(dtTo.getTime()));
+									var to = $(element).find("#dh-" + tools.genId(settings.scale,dtTo.getTime()));
 									var cTo = to.attr("offset");
 									var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
@@ -1102,8 +1099,8 @@
 
 								// **Days**
 								default:
-									var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
-									var dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
+									var dFrom = tools.genId(settings.scale,tools.dateDeserialize(day.from).getTime());
+									var dTo = tools.genId(settings.scale,tools.dateDeserialize(day.to).getTime());
 
 									var from = $(element).find("#dh-" + dFrom);
 									var cFrom = from.attr("offset");
@@ -1494,7 +1491,7 @@
 					});
 				});
 
-				return this.getScaledMinDate(element, maxDate);
+				return this.getScaledMaxDate(element, maxDate);
 			},
 
 			// Return the minimum available date in data depending on the scale
@@ -1597,11 +1594,9 @@
 			},
 
 			// Generate an id for a date
-			genId : function(ticks) {
-				var $this = $(this);
-				var settings = $this.data(pname);
+			genId : function(scale, ticks) {
 				var t = new Date(ticks);
-				switch (settings.scale) {
+				switch (scale) {
 					case "hours":
 						var hour = t.getHours();
 						if (arguments.length >= 2) {
