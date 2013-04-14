@@ -335,6 +335,8 @@
 
 		// Create and return the data panel element
 		dataPanel : function(element, width) {
+			var settings = $(element).data(pname);
+			
 			var dataPanel = $('<div class="dataPanel" style="width: ' + width + 'px;"/>');
 
 			// Handle mousewheel events for scrolling the data panel
@@ -352,9 +354,6 @@
 			// Handle click events and dispatch to registered `onAddClick`
 			// function
 			dataPanel.click(function(e) {
-				var $this = $(e);
-				var settings = $this.data(pname);
-
 				e.stopPropagation();
 				var corrX, corrY;
 				var leftpanel = $(element).find(".fn-gantt .leftPanel");
@@ -788,10 +787,10 @@
 					$(".fn-gantt-hint").css("top", e.pageY + 15);
 				});
 			}
-			bar.click(function(e) {
-				e.stopPropagation();
-				settings.onItemClick($(this).data("dataObj"));
-			});
+			/*bar.click(function(e) {
+			 e.stopPropagation();
+			 settings.onItemClick($(this).data("dataObj"));
+			 });*/
 			return bar;
 		},
 
@@ -856,6 +855,10 @@
 								var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
 
 								_bar = core.createProgressBar(dl, day.customClass ? day.customClass : "", day.desc ? day.desc : "", day.label ? day.label : "", day.dataObj ? day.dataObj : null);
+								_bar.click(function(e) {
+									e.stopPropagation();
+									settings.onItemClick($(element).data("dataObj"));
+								});
 
 								// find row
 								var topEl = $(element).find("#rowheader" + i);
@@ -896,6 +899,10 @@
 								var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
 								_bar = core.createProgressBar(dl, day.customClass ? day.customClass : "", day.desc ? day.desc : "", day.label ? day.label : "", day.dataObj ? day.dataObj : null);
+								_bar.click(function(e) {
+									e.stopPropagation();
+									settings.onItemClick($(element).data("dataObj"));
+								});
 
 								// find row
 								var topEl = $(element).find("#rowheader" + i);
@@ -933,6 +940,10 @@
 								var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
 								_bar = core.createProgressBar(dl, day.customClass ? day.customClass : "", day.desc ? day.desc : "", day.label ? day.label : "", day.dataObj ? day.dataObj : null);
+								_bar.click(function(e) {
+									e.stopPropagation();
+									settings.onItemClick($(element).data("dataObj"));
+								});
 
 								// find row
 								var topEl = $(element).find("#rowheader" + i);
@@ -956,6 +967,10 @@
 
 								var dl = Math.floor(((dTo / 1000) - (dFrom / 1000)) / 86400) + 1;
 								_bar = core.createProgressBar(dl, day.customClass ? day.customClass : "", day.desc ? day.desc : "", day.label ? day.label : "", day.dataObj ? day.dataObj : null);
+								_bar.click(function(e) {
+									e.stopPropagation();
+									settings.onItemClick($(element).data("dataObj"));
+								});
 
 								// find row
 								var topEl = $(element).find("#rowheader" + i);
@@ -1136,6 +1151,7 @@
 		// Move chart via mousewheel
 		wheelScroll : function(element, e) {
 			var $this = $(element);
+			var settings = $this.data(pname);
 			var delta = e.detail ? e.detail * (-50) : e.wheelDelta / 120 * 50;
 
 			core.scrollPanel(element, delta);
