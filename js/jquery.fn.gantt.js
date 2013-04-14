@@ -33,7 +33,6 @@
 	var pname = 'gantt';
 
 	var defaults = {
-	//	source : null,
 		data : [], // Received data
 		itemsPerPage : 7,
 		months : ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -55,9 +54,7 @@
 			return;
 		},
 		scrollToToday : true,
-	//};
 
-//	var _def_options = {
 		pageNum : 0, // Current page number
 		pageCount : 0, // Available pages count
 		rowsOnLastPage : 0, // How many rows on last page
@@ -101,8 +98,6 @@
 
 			return this.each(function() {
 				var $this = $(this);
-				//$this._options = _def_options;
-				//this._options = _def_options;
 
 				if (settings.useCookie) {
 					var sc = $.cookie(cookieKey + "CurrentScale");
@@ -133,7 +128,6 @@
 				}
 
 				core.create(this);
-				//$this.core.create($this);
 			});
 		},
 
@@ -142,26 +136,14 @@
 				var $this = $(this);
 				var settings = $this.data(pname);
 
-				//console.log(source);
-				//console.log(settings.data);
-
 				settings.data.push(source);
-
-				//console.log(settings.data);
 				core.init(this);
 				core.render(this);
-			});
-		},
-
-		test : function(param) {
-			return this.each(function() {
-				console.log(param);
-				alert("test");
 			});
 		}
 	};
 
-		// Grid management
+	// Grid management
 	// ===============
 
 	// Core object is responsible for navigation and rendering
@@ -233,6 +215,9 @@
 		render : function(element) {
 			var $this = $(element);
 			var settings = $this.data(pname);
+
+			if (!settings.data || !settings.data.length)
+				return;
 
 			var content = $('<div class="fn-content"/>');
 			var $leftPanel = core.leftPanel(element);
@@ -359,9 +344,9 @@
 					core.wheelScroll(element, e);
 				});
 			} else if (document.addEventListener) {
-				/*element.addEventListener(mousewheelevt, function(e) {
-				 core.wheelScroll(element, e);
-				 }, false);*/
+				element.addEventListener(mousewheelevt, function(e) {
+					core.wheelScroll(element, e);
+				}, false);
 			}
 
 			// Handle click events and dispatch to registered `onAddClick`
@@ -1206,6 +1191,8 @@
 		// Update scroll panel margins
 		scrollPanel : function(element, delta) {
 			var $this = $(element);
+			var settings = $this.data(pname);
+
 			if (!settings.scrollNavigation.canScroll) {
 				return false;
 			}
@@ -1423,22 +1410,13 @@
 
 			var ret = [];
 			var i = 0;
-			if (current.getDay() === 0)
-				ret[i++] = current.getDayForWeek();
-			current.setDate(current.getDate() + 1);
 
-			while (current.getTime() <= to.getTime()) {
+			do {
 				if (current.getDay() === 0) {
 					ret[i++] = current.getDayForWeek();
 				}
 				current.setDate(current.getDate() + 1);
-			}
-			/*do {
-			 if (current.getDay() === 0) {
-			 ret[i++] = current.getDayForWeek();
-			 }
-			 current.setDate(current.getDate() + 1);
-			 } while (current.getTime() <= to.getTime());*/
+			} while (current.getTime() <= to.getTime());
 
 			return ret;
 		},
@@ -1530,7 +1508,7 @@
 			return tools._getProgressBarMargin;
 		}
 	};
-	
+
 	// custom selector `:findday` used to match on specified day in ms.
 	//
 	// The selector is passed a date in ms and elements are added to the
@@ -1657,12 +1635,8 @@
 		}
 	};
 
-
-
-	//return this.each(function(method) {
 	$.fn.gantt = function() {
-		//this._options = _def_options;
-		
+
 		var method = arguments[0];
 
 		if (methods[method]) {
@@ -1673,8 +1647,6 @@
 			$.error('Method ' + method + ' does not exist on jQuery.tooltip');
 			return this;
 		}
-
-		//});
 
 	};
 })(jQuery);
