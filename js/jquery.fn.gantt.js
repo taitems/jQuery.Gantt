@@ -962,8 +962,8 @@
 
                                     var cFrom = from.attr("offset");
                                     var cTo = to.attr("offset");
-                                    var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
-
+                                    var eventHours = (Dto.getTime() - Dfrom.getTime() + (Dfrom.getTimezoneOffset() - Dto.getTimezoneOffset())*60000) / 3600000;
+                                    var dl = eventHours / element.scaleStep;
                                     _bar = core.createProgressBar(
                                                 dl,
                                                 day.customClass ? day.customClass : "",
