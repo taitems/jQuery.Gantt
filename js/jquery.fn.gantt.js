@@ -34,6 +34,7 @@
         var settings = {
             source: null,
             itemsPerPage: 7,
+            enablePagination: true,
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
             dow: ["S", "M", "T", "W", "T", "F", "S"],
             startPos: new Date(),
@@ -42,9 +43,12 @@
             useCookie: false,
             maxScale: "months",
             minScale: "hours",
+            minDate: null,
+            maxDate: new Date(),
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
+            onPreRender: function(data){return;},
             onRender: function() { return; },
             scrollToToday: true
         };
@@ -217,6 +221,9 @@
             // and end dates once the data is ready
             init: function (element) {
                 element.rowsNum = element.data.length;
+                if(settings.enablePagination !== true){
+                	settings.itemsPerPage = element.rowsNum;
+                }
                 element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
                 element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
 
@@ -230,6 +237,7 @@
 
             // **Render the grid**
             render: function (element) {
+            	settings.onPreRender();
                 var content = $('<div class="fn-content"/>');
                 var $leftPanel = core.leftPanel(element);
                 content.append($leftPanel);
@@ -263,25 +271,8 @@
 
                 // Scroll the grid to today's date
                 if (settings.scrollToToday) {
-                    var startPos = Math.round((settings.startPos / 1000 - element.dateStart / 1000) / 86400) - 2;
-                    if ((startPos > 0 && element.hPosition !== 0)) {
-                        if (element.scaleOldWidth) {
-                            mLeft = ($dataPanel.width() - $rightPanel.width());
-                            hPos = mLeft * element.hPosition / element.scaleOldWidth;
-                            hPos = hPos > 0 ? 0 : hPos;
-                            $dataPanel.css({ "margin-left": hPos + "px" });
-                            element.scrollNavigation.panelMargin = hPos;
-                            element.hPosition = hPos;
-                            element.scaleOldWidth = null;
-                        } else {
-                            $dataPanel.css({ "margin-left": element.hPosition + "px" });
-                            element.scrollNavigation.panelMargin = element.hPosition;
-                        }
-                        core.repositionLabel(element);
-                    } else {
-                        core.repositionLabel(element);
-                    }
-                // or, scroll the grid to the left most date in the panel
+                	core.navigateTo(element, 'now');
+                	core.scrollPanel(element,0);
                 } else {
                     if ((element.hPosition !== 0)) {
                         if (element.scaleOldWidth) {
@@ -1020,8 +1011,8 @@
 
                                     var cFrom = from.attr("offset");
                                     var cTo = to.attr("offset");
-                                    var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
-
+                                    var eventHours = (Dto.getTime() - Dfrom.getTime() + (Dfrom.getTimezoneOffset() - Dto.getTimezoneOffset())*60000) / 3600000;
+                                    var dl = eventHours / element.scaleStep;
                                     _bar = core.createProgressBar(
                                                 dl,
                                                 day.customClass ? day.customClass : "",
@@ -1441,7 +1432,7 @@
 
             // Return the maximum available date in data depending on the scale
             getMaxDate: function (element) {
-                var maxDate = null;
+                var maxDate = settings.maxDate;
                 $.each(element.data, function (i, entry) {
                     $.each(entry.values, function (i, date) {
                         maxDate = maxDate < tools.dateDeserialize(date.to) ? tools.dateDeserialize(date.to) : maxDate;
@@ -1474,7 +1465,7 @@
 
             // Return the minimum available date in data depending on the scale
             getMinDate: function (element) {
-                var minDate = null;
+                var minDate = settings.minDate;
                 $.each(element.data, function (i, entry) {
                     $.each(entry.values, function (i, date) {
                         minDate = minDate > tools.dateDeserialize(date.from) || minDate === null ? tools.dateDeserialize(date.from) : minDate;
