@@ -1,0 +1,118 @@
+﻿<!doctype html>
+<html lang="en-au">
+    <head>
+        <title>jQuery.Gantt - Test Suite 02</title>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=Edge;chrome=1" >
+        <link rel="stylesheet" href="../css/style.css" />
+        <link href="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/css/bootstrap-combined.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="http://taitems.github.com/UX-Lab/core/css/prettify.css" />
+		<style type="text/css">
+			body {
+				font-family: Helvetica, Arial, sans-serif;
+				font-size: 13px;
+				padding: 0 0 50px 0;
+			}
+			.contain {
+				width: 800px;
+				margin: 0 auto;
+			}
+			h1 {
+				margin: 40px 0 20px 0;
+			}
+			h2 {
+				font-size: 1.5em;
+				padding-bottom: 3px;
+				border-bottom: 1px solid #DDD;
+				margin-top: 50px;
+				margin-bottom: 25px;
+			}
+			table th:first-child {
+				width: 150px;
+			}
+		</style>
+    </head>
+    <body>
+
+		<div class="contain">
+
+			<h1>
+				jQuery.Gantt
+				<small>&mdash; Test Suite 02</small>
+			</h1>
+
+			<p>
+				<strong>Expected behaviour:</strong>
+				<ul>
+					<li>Chart can be scrolled by dragging empty space in data panel.</li>
+					<li>Touch screen clients can scroll with drag touches.</li>
+					<li>Releasing the mouse over a Gantt item after a drag completes doesn't trigger the onItemClick event.</li>
+					<li>Releasing the mouse over an empty spot on the data panel after a drag completes doesn't trigger the onAddClick event.</li>
+					<li>Using the scroll wheel while mouse is over the data panel doesn't scroll the data panel.</li>
+				</ul>
+			</p>
+
+			<p>
+				<strong>Manual validation:</strong>
+				<ul>
+					<li>Passing</li>
+				</ul>
+			</p>
+				
+			<div class="gantt"></div>
+
+
+    </body>
+	<script src="../js/jquery.min.js"></script>
+	<script src="../js/jquery.fn.gantt.js"></script>
+	<script src="moment.min.js"></script>
+	<script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
+	<script src="http://taitems.github.com/UX-Lab/core/js/prettify.js"></script>
+    <script>
+
+		$(function() {
+
+			"use strict";
+
+			var today = moment();
+			var future = moment().add("hours",200);
+
+			var today_friendly = "/Date(" + today.valueOf() + ")/";
+			var next_friendly = "/Date(" + future.valueOf() + ")/";
+			var click_date_friendly = "/Date(" + today.add("hours", -10).valueOf() + ")/";
+
+			$(".gantt").gantt({
+				source: [
+					{
+						name: "Testing",
+						desc: " ",
+						values: [{
+							from: today_friendly,
+							to: next_friendly,
+							label: "Test", 
+							customClass: "ganttRed"
+						}]
+					},
+					{
+						name: "Test click release",
+						desc: " ",
+						values: [{
+							from: click_date_friendly,
+							to: next_friendly,
+							label: "Test2", 
+							customClass: "ganttRed"
+						}]
+					}
+				],
+				scale: "hours",
+				minScale: "hours",
+				navigate: "scroll",
+				scrollOnDrag: true,
+				scrollOnWheel: false,
+				onItemClick: function() { alert('Gantt item clicked.'); },
+				onAddClick: function() { alert('Data panel clicked.'); }
+			});
+		});
+
+    </script>
+</html>

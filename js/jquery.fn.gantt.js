@@ -46,7 +46,9 @@
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
             onRender: function() { return; },
-            scrollToToday: true
+            scrollToToday: true,
+            scrollOnWheel: true,
+            scrollOnDrag: false
         };
 
         // custom selector `:findday` used to match on specified day in ms.
@@ -223,6 +225,7 @@
                 element.dateStart = tools.getMinDate(element);
                 element.dateEnd = tools.getMaxDate(element);
 
+                element.dataPanelIgnoreNextClick = false;
 
                 /* core.render(element); */
                 core.waitToggle(element, true, function () { core.render(element); });
@@ -338,19 +341,38 @@
             dataPanel: function (element, width) {
                 var dataPanel = $('<div class="dataPanel" style="width: ' + width + 'px;"/>');
 
-                // Handle mousewheel events for scrolling the data panel
-                var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
-                if (document.attachEvent) {
-                    element.attachEvent("on" + mousewheelevt, function (e) { core.wheelScroll(element, e); });
-                } else if (document.addEventListener) {
-                    element.addEventListener(mousewheelevt, function (e) { core.wheelScroll(element, e); }, false);
+                if (settings.scrollOnWheel == true) {
+                    // Handle mousewheel events for scrolling the data panel
+                    var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
+                    if (document.attachEvent) {
+                        element.attachEvent("on" + mousewheelevt, function (e) { core.wheelScroll(element, e); });
+                    } else if (document.addEventListener) {
+                        element.addEventListener(mousewheelevt, function (e) { core.wheelScroll(element, e); }, false);
+                    }
                 }
 
+                if (settings.scrollOnDrag == true) {
+                    dataPanel.on('touchstart', function (e) { core.dragDataPanelStart(element, e.originalEvent.changedTouches[0].screenX, e); });
+                    dataPanel.on('touchmove', function (e) { core.dragDataPanelMove(element, e.originalEvent.changedTouches[0].screenX, e); });
+                    dataPanel.on('touchend', function (e) { core.dragDataPanelStop(element); });
+              
+                    dataPanel.mousedown(function (e) { core.dragDataPanelStart(element, e.screenX, e); });
+                    dataPanel.mousemove(function (e) { core.dragDataPanelMove(element, e.screenX, e); });
+                    dataPanel.mouseout(function (e) { core.dragDataPanelStop(element); });
+                    dataPanel.mouseup(function (e) { core.dragDataPanelStop(element); });
+                }
+              
                 // Handle click events and dispatch to registered `onAddClick`
                 // function
                 dataPanel.click(function (e) {
 
                     e.stopPropagation();
+                  
+                    if (element.dataPanelIgnoreNextClick == true) {
+                      element.dataPanelIgnoreNextClick = false;
+                      return dataPanel;
+                    }
+
                     var corrX, corrY;
                     var leftpanel = $(element).find(".fn-gantt .leftPanel");
                     var datapanel = $(element).find(".fn-gantt .dataPanel");
@@ -960,7 +982,12 @@
                 }
                 bar.click(function (e) {
                     e.stopPropagation();
-                    settings.onItemClick($(this).data("dataObj"));
+									
+                    if (element.dataPanelIgnoreNextClick == true) {
+                      element.dataPanelIgnoreNextClick = false;
+                    } else {
+											settings.onItemClick($(this).data("dataObj"));
+										}
                 });
                 return bar;
             },
@@ -1431,6 +1458,25 @@
                     }
                     element.loader = null;
                 }
+            },
+            
+            dragDataPanelStart: function (element, screenX, e) {
+                element.scrollNavigation.dragStartX = screenX;
+            },
+          
+            dragDataPanelMove: function (element, screenX, e) {
+                if (element.scrollNavigation.dragStartX != undefined) {
+                    core.scrollPanel(element, screenX - element.scrollNavigation.dragStartX)
+                    element.scrollNavigation.dragStartX = screenX
+                    
+                    // Stop the click event from being generated on mouse up when the drag ends.
+                    element.dataPanelIgnoreNextClick = true;
+                    e.preventDefault();
+                }
+            },
+          
+            dragDataPanelStop: function (element) {
+                element.scrollNavigation.dragStartX = undefined;
             }
         };
 
@@ -1728,7 +1774,8 @@
                 panelMargin: 0,
                 repositionDelay: 0,
                 panelMaxPos: 0,
-                canScroll: true
+                canScroll: true,
+                dragStartX: undefined
             };
 
             this.gantt = null;
