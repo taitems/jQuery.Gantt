@@ -343,12 +343,7 @@
 
                 if (settings.scrollOnWheel == true) {
                     // Handle mousewheel events for scrolling the data panel
-                    var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
-                    if (document.attachEvent) {
-                        element.attachEvent("on" + mousewheelevt, function (e) { core.wheelScroll(element, e); });
-                    } else if (document.addEventListener) {
-                        element.addEventListener(mousewheelevt, function (e) { core.wheelScroll(element, e); }, false);
-                    }
+                  $(element).on('wheel', function (e) { core.wheelScroll(element, e); });
                 }
 
                 if (settings.scrollOnDrag == true) {
@@ -694,7 +689,7 @@
                     default:
                         range = tools.parseDateRange(element.dateStart, element.dateEnd);
 
-						var dateBefore = ktkGetNextDate(range[0], -1);
+                        var dateBefore = ktkGetNextDate(range[0], -1);
                         var year = dateBefore.getFullYear();
                         var month = dateBefore.getMonth();
                         var day = dateBefore;
@@ -982,12 +977,12 @@
                 }
                 bar.click(function (e) {
                     e.stopPropagation();
-									
+                                    
                     if (element.dataPanelIgnoreNextClick == true) {
                       element.dataPanelIgnoreNextClick = false;
                     } else {
-											settings.onItemClick($(this).data("dataObj"));
-										}
+					  settings.onItemClick($(this).data("dataObj"));
+					}
                 });
                 return bar;
             },
@@ -1330,7 +1325,7 @@
 
             // Move chart via mousewheel
             wheelScroll: function (element, e) {
-                var delta = e.detail ? e.detail * (-50) : e.wheelDelta / 120 * 50;
+                var delta = e.originalEvent.deltaY * 50;
 
                 core.scrollPanel(element, delta);
 
@@ -1587,27 +1582,27 @@
                 var ret = [];
                 var i = 0;
                 for(;;) {
-					var dayStartTime = new Date(current);
-					dayStartTime.setHours(Math.floor((current.getHours()) / scaleStep) * scaleStep);
+                    var dayStartTime = new Date(current);
+                    dayStartTime.setHours(Math.floor((current.getHours()) / scaleStep) * scaleStep);
 
                     if (ret[i] && dayStartTime.getDay() !== ret[i].getDay()) {
-						// If mark-cursor jumped to next day, make sure it starts at 0 hours
-						dayStartTime.setHours(0);
+                        // If mark-cursor jumped to next day, make sure it starts at 0 hours
+                        dayStartTime.setHours(0);
                     }
-					ret[i] = dayStartTime;
+                    ret[i] = dayStartTime;
 
-					// Note that we use ">" because we want to include the end-time point.
-					if(current.getTime() > to.getTime()) break;
+                    // Note that we use ">" because we want to include the end-time point.
+                    if(current.getTime() > to.getTime()) break;
 
-					/* BUG-2: current is moved backwards producing a dead-lock! (crashes chrome/IE/firefox)
-					 * SEE: https://github.com/taitems/jQuery.Gantt/issues/62
+                    /* BUG-2: current is moved backwards producing a dead-lock! (crashes chrome/IE/firefox)
+                     * SEE: https://github.com/taitems/jQuery.Gantt/issues/62
                     if (current.getDay() !== ret[i].getDay()) {
                        current.setHours(0);
                     }
-					*/
+                    */
 
                     // GR Fix Begin
-					current = ktkGetNextDate(dayStartTime, scaleStep);
+                    current = ktkGetNextDate(dayStartTime, scaleStep);
                     // GR Fix End
 
                     i++;
@@ -1789,15 +1784,15 @@
 })(jQuery);
 
 function ktkGetNextDate(currentDate, scaleStep) {
-	for(var minIncrements = 1;; minIncrements++) {
-		var nextDate = new Date(currentDate);
-		nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
+    for(var minIncrements = 1;; minIncrements++) {
+        var nextDate = new Date(currentDate);
+        nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
 
-		if(nextDate.getTime() != currentDate.getTime()) {
-			return nextDate;
-		}
+        if(nextDate.getTime() != currentDate.getTime()) {
+            return nextDate;
+        }
 
-		// If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
-		// => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
-	}
+        // If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
+        // => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
+    }
 }

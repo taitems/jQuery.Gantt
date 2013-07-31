@@ -42,7 +42,11 @@
 			</h1>
 
 			<p>
-				<strong>Expected behaviour:</strong> Gantt bar should run from "now" until 2 hours from now. It fails when all the bars are docked left at the hour view.
+				<strong>Expected behaviour:</strong>
+				<ul>
+					<li>Two Gantt bars are present. The first runs from "now" until 2 hours from now. The second runs from "now" until 10 hours from now. It fails when all the bars are docked left at the hour view.</li>
+					<li>Mouse wheel scrolls the chart.</li>
+				</ul>
 			</p>
 
 			<p>
@@ -72,6 +76,7 @@
 
 			var today_friendly = "/Date(" + today.valueOf() + ")/";
 			var next_friendly = "/Date(" + andTwoHours.valueOf() + ")/";
+			var far_next_friendly = "/Date(" + today.add("hours", 10).valueOf() + ")/";
 
 			$(".gantt").gantt({
 				source: [{
@@ -83,7 +88,17 @@
 						label: "Test", 
 						customClass: "ganttRed"
 					}]
-				}],
+				},
+				{
+					name: "Large bar",
+					desc: " ",
+					values: [{
+						from: today_friendly,
+						to: far_next_friendly,
+						label: "Large bar", 
+						customClass: "ganttRed"
+					}]
+				}				],
 				scale: "hours",
 				minScale: "hours",
 				navigate: "scroll"
