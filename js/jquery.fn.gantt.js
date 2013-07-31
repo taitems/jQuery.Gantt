@@ -1092,7 +1092,8 @@
                                              day.customClass ? day.customClass : "",
                                              day.desc ? day.desc : "",
                                              day.label ? day.label : "",
-                                            day.dataObj ? day.dataObj : null
+                                             day.dataObj ? day.dataObj : null,
+                                             element
                                         );
 
                                     // find row
@@ -1132,7 +1133,8 @@
                                         day.customClass ? day.customClass : "",
                                         day.desc ? day.desc : "",
                                         day.label ? day.label : "",
-                                        day.dataObj ? day.dataObj : null
+                                        day.dataObj ? day.dataObj : null,
+                                        element
                                     );
 
                                     // find row
@@ -1158,7 +1160,8 @@
                                                 day.customClass ? day.customClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
-                                                day.dataObj ? day.dataObj : null
+                                                day.dataObj ? day.dataObj : null,
+                                                element
                                         );
 
                                     // find row
