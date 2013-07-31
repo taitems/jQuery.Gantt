@@ -948,7 +948,7 @@
             // **Progress Bar**
             // Return an element representing a progress of position within
             // the entire chart
-            createProgressBar: function (days, cls, desc, label, dataObj) {
+            createProgressBar: function (days, cls, desc, label, dataObj, element) {
                 var cellWidth = tools.getCellSize();
                 var barMarg = tools.getProgressBarMargin() || 0;
                 var bar = $('<div class="bar"><div class="fn-label">' + label + '</div></div>')
@@ -981,8 +981,8 @@
                     if (element.dataPanelIgnoreNextClick == true) {
                       element.dataPanelIgnoreNextClick = false;
                     } else {
-					  settings.onItemClick($(this).data("dataObj"));
-					}
+                      settings.onItemClick($(this).data("dataObj"));
+                    }
                 });
                 return bar;
             },
@@ -1048,7 +1048,8 @@
                                                 day.customClass ? day.customClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
-                                                day.dataObj ? day.dataObj : null
+                                                day.dataObj ? day.dataObj : null,
+                                                element
                                             );
 
                                     // find row
