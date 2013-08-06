@@ -20,9 +20,8 @@
 //      });
 
 //
-/*jshint shadow:true, unused:false, laxbreak:true, evil:true*/
-/*globals jQuery, alert*/
-(function ($) {
+/*jshint shadow:true, laxbreak:true, jquery:true, strict:true, trailing:true */
+(function ($, undefined) {
 
     "use strict";
 
@@ -36,7 +35,6 @@
             itemsPerPage: 7,
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
             dow: ["S", "M", "T", "W", "T", "F", "S"],
-            startPos: new Date(),
             navigate: "buttons",
             scale: "days",
             useCookie: false,
@@ -48,6 +46,16 @@
             onRender: function() { return; },
             scrollToToday: true
         };
+
+        /**
+        * Extend options with default values
+        */
+        if (options) {
+            $.extend(settings, options);
+        }
+
+        // can't use cookie if don't have `$.cookie`
+        settings.useCookie = settings.useCookie && $.isFunction($.cookie);
 
         // custom selector `:findday` used to match on specified day in ms.
         //
@@ -175,6 +183,20 @@
             }
         };
 
+        // fixes https://github.com/taitems/jQuery.Gantt/issues/62
+        function ktkGetNextDate(currentDate, scaleStep) {
+            for(var minIncrements = 1;; minIncrements++) {
+                var nextDate = new Date(currentDate);
+                nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
+
+                if (nextDate.getTime() !== currentDate.getTime()) {
+                    return nextDate;
+                }
+
+                // If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
+                // => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
+            }
+        }
 
         // Grid management
         // ===============
@@ -263,24 +285,8 @@
 
                 // Scroll the grid to today's date
                 if (settings.scrollToToday) {
-                    var startPos = Math.round((settings.startPos / 1000 - element.dateStart / 1000) / 86400) - 2;
-                    if ((startPos > 0 && element.hPosition !== 0)) {
-                        if (element.scaleOldWidth) {
-                            mLeft = ($dataPanel.width() - $rightPanel.width());
-                            hPos = mLeft * element.hPosition / element.scaleOldWidth;
-                            hPos = hPos > 0 ? 0 : hPos;
-                            $dataPanel.css({ "margin-left": hPos + "px" });
-                            element.scrollNavigation.panelMargin = hPos;
-                            element.hPosition = hPos;
-                            element.scaleOldWidth = null;
-                        } else {
-                            $dataPanel.css({ "margin-left": element.hPosition + "px" });
-                            element.scrollNavigation.panelMargin = element.hPosition;
-                        }
-                        core.repositionLabel(element);
-                    } else {
-                        core.repositionLabel(element);
-                    }
+                    core.navigateTo(element, 'now');
+                    core.scrollPanel(element, 0);
                 // or, scroll the grid to the left most date in the panel
                 } else {
                     if ((element.hPosition !== 0)) {
@@ -339,19 +345,15 @@
                 var dataPanel = $('<div class="dataPanel" style="width: ' + width + 'px;"/>');
 
                 // Handle mousewheel events for scrolling the data panel
-                var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
-                if (document.attachEvent) {
-                    element.attachEvent("on" + mousewheelevt, function (e) { core.wheelScroll(element, e); });
-                } else if (document.addEventListener) {
-                    element.addEventListener(mousewheelevt, function (e) { core.wheelScroll(element, e); }, false);
-                }
+                var wheel = 'onwheel' in element ? 'wheel' : document.onmousewheel !== undefined ? 'mousewheel' : 'DOMMouseScroll';
+                $(element).on(wheel, function (e) { core.wheelScroll(element, e); });
 
                 // Handle click events and dispatch to registered `onAddClick`
                 // function
                 dataPanel.click(function (e) {
 
                     e.stopPropagation();
-                    var corrX, corrY;
+                    var corrX/* <- never used? */, corrY;
                     var leftpanel = $(element).find(".fn-gantt .leftPanel");
                     var datapanel = $(element).find(".fn-gantt .dataPanel");
                     switch (settings.scale) {
@@ -405,13 +407,14 @@
 
             // Creates and return the right panel containing the year/week/day
             // header
-            rightPanel: function (element, leftPanel) {
+            rightPanel: function (element, leftPanel /* <- never used? */) {
 
                 var range = null;
                 // Days of the week have a class of one of
-                // `sn` (Saturday), `sa` (Sunday), or `wd` (Weekday)
+                // `sn` (Sunday), `sa` (Saturday), or `wd` (Weekday)
                 var dowClass = [" sn", " wd", " wd", " wd", " wd", " wd", " sa"];
-                var gridDowClass = [" sn", "", "", "", "", "", " sa"];
+                //TODO: was someone planning to allow styles to stretch to the bottom of the chart?
+                //var gridDowClass = [" sn", "", "", "", "", "", " sa"];
 
                 var yearArr = ['<div class="row"/>'];
                 var daysInYear = 0;
@@ -672,10 +675,10 @@
                     default:
                         range = tools.parseDateRange(element.dateStart, element.dateEnd);
 
-						var dateBefore = ktkGetNextDate(range[0], -1);
+                        var dateBefore = ktkGetNextDate(range[0], -1);
                         var year = dateBefore.getFullYear();
                         var month = dateBefore.getMonth();
-                        var day = dateBefore;
+                        var day = dateBefore; // <- never used?
 
                         for (var i = 0; i < range.length; i++) {
                             var rday = range[i];
@@ -987,7 +990,7 @@
 
             // **Fill the Chart**
             // Parse the data and fill the data panel
-            fillData: function (element, datapanel, leftpanel) {
+            fillData: function (element, datapanel, leftpanel /* <- never used? */) {
                 var invertColor = function (colStr) {
                     try {
                         colStr = colStr.replace("rgb(", "").replace(")", "");
@@ -1164,9 +1167,6 @@
             navigateTo: function (element, val) {
                 var $rightPanel = $(element).find(".fn-gantt .rightPanel");
                 var $dataPanel = $rightPanel.find(".dataPanel");
-                $dataPanel.click = function () {
-                    alert(arguments.join(""));
-                };
                 var rightPanelWidth = $rightPanel.width();
                 var dataPanelWidth = $dataPanel.width();
 
@@ -1303,7 +1303,7 @@
 
             // Move chart via mousewheel
             wheelScroll: function (element, e) {
-                var delta = e.detail ? e.detail * (-50) : e.wheelDelta / 120 * 50;
+                var delta = - 50 * ('detail' in e ? e.detail : - 1/120 * e.originalEvent.wheelDelta);
 
                 core.scrollPanel(element, delta);
 
@@ -1506,7 +1506,7 @@
             // Return an array of Date objects between `from` and `to`
             parseDateRange: function (from, to) {
                 var current = new Date(from.getTime());
-                var end = new Date(to.getTime());
+                var end = new Date(to.getTime()); // <- never used?
                 var ret = [];
                 var i = 0;
                 do {
@@ -1541,27 +1541,27 @@
                 var ret = [];
                 var i = 0;
                 for(;;) {
-					var dayStartTime = new Date(current);
-					dayStartTime.setHours(Math.floor((current.getHours()) / scaleStep) * scaleStep);
+                    var dayStartTime = new Date(current);
+                    dayStartTime.setHours(Math.floor((current.getHours()) / scaleStep) * scaleStep);
 
                     if (ret[i] && dayStartTime.getDay() !== ret[i].getDay()) {
-						// If mark-cursor jumped to next day, make sure it starts at 0 hours
-						dayStartTime.setHours(0);
+                        // If mark-cursor jumped to next day, make sure it starts at 0 hours
+                        dayStartTime.setHours(0);
                     }
-					ret[i] = dayStartTime;
+                    ret[i] = dayStartTime;
 
-					// Note that we use ">" because we want to include the end-time point.
-					if(current.getTime() > to.getTime()) break;
+                    // Note that we use ">" because we want to include the end-time point.
+                    if (current.getTime() > to.getTime()) break;
 
-					/* BUG-2: current is moved backwards producing a dead-lock! (crashes chrome/IE/firefox)
-					 * SEE: https://github.com/taitems/jQuery.Gantt/issues/62
+                    /* BUG-2: current is moved backwards producing a dead-lock! (crashes chrome/IE/firefox)
+                     * SEE: https://github.com/taitems/jQuery.Gantt/issues/62
                     if (current.getDay() !== ret[i].getDay()) {
                        current.setHours(0);
                     }
-					*/
+                    */
 
                     // GR Fix Begin
-					current = ktkGetNextDate(dayStartTime, scaleStep);
+                    current = ktkGetNextDate(dayStartTime, scaleStep);
                     // GR Fix End
 
                     i++;
@@ -1575,7 +1575,7 @@
             parseWeeksRange: function (from, to) {
 
                 var current = new Date(from);
-                var end = new Date(to);
+                var end = new Date(to); // <- never used?
 
                 var ret = [];
                 var i = 0;
@@ -1595,7 +1595,7 @@
             parseMonthsRange: function (from, to) {
 
                 var current = new Date(from);
-                var end = new Date(to);
+                var end = new Date(to); // <- never used?
 
                 var ret = [];
                 var i = 0;
@@ -1609,9 +1609,9 @@
 
             // Deserialize a date from a string
             dateDeserialize: function (dateStr) {
-                var newDate = new Date();
-                newDate.setTime(dateStr.replace(/[^0-9]/g, ""));
-                return newDate;
+                var date = dateStr.replace(/\/Date\((.*)\)\//, "$1");
+                date = $.isNumeric(date) ? parseInt(date, 10) : $.trim(date);
+                return new Date( date );
             },
 
             // Generate an id for a date
@@ -1684,13 +1684,6 @@
 
 
         this.each(function () {
-            /**
-            * Extend options with default values
-            */
-            if (options) {
-                $.extend(settings, options);
-            }
-
             this.data = null;        // Received data
             this.pageNum = 0;        // Current page number
             this.pageCount = 0;      // Available pages count
@@ -1740,17 +1733,3 @@
 
     };
 })(jQuery);
-
-function ktkGetNextDate(currentDate, scaleStep) {
-	for(var minIncrements = 1;; minIncrements++) {
-		var nextDate = new Date(currentDate);
-		nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
-
-		if(nextDate.getTime() != currentDate.getTime()) {
-			return nextDate;
-		}
-
-		// If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
-		// => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
-	}
-}
