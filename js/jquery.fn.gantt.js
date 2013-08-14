@@ -341,20 +341,18 @@
             dataPanel: function (element, width) {
                 var dataPanel = $('<div class="dataPanel" style="width: ' + width + 'px;"/>');
 
-                if (settings.scrollOnWheel == true) {
+                if (settings.scrollOnWheel) {
                     // Handle mousewheel events for scrolling the data panel
-                  $(element).on('wheel', function (e) { core.wheelScroll(element, e); });
+                    var wheel = core.wheel = 'onwheel' in element ? 'wheel' : document.onmousewheel !== undefined ? 'mousewheel' : 'DOMMouseScroll';
+                    $(element).on(wheel, function (e) { core.wheelScroll(element, e); });
                 }
 
-                if (settings.scrollOnDrag == true) {
-                    dataPanel.on('touchstart', function (e) { core.dragDataPanelStart(element, e.originalEvent.changedTouches[0].screenX, e); });
-                    dataPanel.on('touchmove', function (e) { core.dragDataPanelMove(element, e.originalEvent.changedTouches[0].screenX, e); });
-                    dataPanel.on('touchend', function (e) { core.dragDataPanelStop(element); });
+                if (settings.scrollOnDrag) {
+                    dataPanel.on('touchstart', function (e) { core.dragDataPanelStart(element, dataPanel, e.originalEvent.changedTouches[0].screenX, e); });
+                    dataPanel.on('touchend', function (e) { core.dragDataPanelStop(element, dataPanel); });
               
-                    dataPanel.mousedown(function (e) { core.dragDataPanelStart(element, e.screenX, e); });
-                    dataPanel.mousemove(function (e) { core.dragDataPanelMove(element, e.screenX, e); });
-                    dataPanel.mouseout(function (e) { core.dragDataPanelStop(element); });
-                    dataPanel.mouseup(function (e) { core.dragDataPanelStop(element); });
+                    dataPanel.on('mousedown', function (e) { core.dragDataPanelStart(element, dataPanel, e.screenX, e); });
+                    dataPanel.on('mouseup mouseout', function (e) { core.dragDataPanelStop(element, dataPanel); });
                 }
               
                 // Handle click events and dispatch to registered `onAddClick`
@@ -363,7 +361,7 @@
 
                     e.stopPropagation();
                   
-                    if (element.dataPanelIgnoreNextClick == true) {
+                    if (element.dataPanelIgnoreNextClick) {
                       element.dataPanelIgnoreNextClick = false;
                       return dataPanel;
                     }
@@ -689,7 +687,7 @@
                     default:
                         range = tools.parseDateRange(element.dateStart, element.dateEnd);
 
-                        var dateBefore = ktkGetNextDate(range[0], -1);
+                        var dateBefore = tools.ktkGetNextDate(range[0], -1);
                         var year = dateBefore.getFullYear();
                         var month = dateBefore.getMonth();
                         var day = dateBefore;
@@ -978,10 +976,11 @@
                 bar.click(function (e) {
                     e.stopPropagation();
                                     
-                    if (element.dataPanelIgnoreNextClick == true) {
-                      element.dataPanelIgnoreNextClick = false;
+                    if (element.dataPanelIgnoreNextClick) {
+                        element.dataPanelIgnoreNextClick = false;
+                        e.preventDefault();
                     } else {
-                      settings.onItemClick($(this).data("dataObj"));
+                        settings.onItemClick($(this).data("dataObj"));
                     }
                 });
                 return bar;
@@ -1329,9 +1328,16 @@
 
             // Move chart via mousewheel
             wheelScroll: function (element, e) {
-                var delta = e.originalEvent.deltaY * 50;
+                var delta;
 
-                core.scrollPanel(element, delta);
+                if (core.wheel === 'wheel')
+                    delta = e.originalEvent.deltaY;
+                else if (core.wheel === 'mousewheel')
+                    delta = -1/40 * e.originalEvent.wheelDelta;
+                else // DOMMouseScroll
+                    delta = e.originalEvent.detail;
+
+                core.scrollPanel(element, -50 * delta);
 
                 clearTimeout(element.scrollNavigation.repositionDelay);
                 element.scrollNavigation.repositionDelay = setTimeout(core.repositionLabel, 50, element);
@@ -1459,14 +1465,24 @@
                 }
             },
             
-            dragDataPanelStart: function (element, screenX, e) {
+            dragDataPanelStart: function (element, dataPanel, screenX, e) {
                 element.scrollNavigation.dragStartX = screenX;
+                dataPanel.on('touchmove', function (e) { core.dragDataPanelMove(element, e.originalEvent.changedTouches[0].screenX, e); });
+                dataPanel.on('mousemove', function (e) { core.dragDataPanelMove(element, e.screenX, e); });
             },
           
             dragDataPanelMove: function (element, screenX, e) {
-                if (element.scrollNavigation.dragStartX != undefined) {
-                    core.scrollPanel(element, screenX - element.scrollNavigation.dragStartX)
-                    element.scrollNavigation.dragStartX = screenX
+                if (typeof element.scrollNavigation.dragStartX !== 'undefined') {
+
+                    // Update dragging of panel no more than 30 times a second, to smooth out
+                    // choppy dragging.
+                    var time = new Date().getTime();
+                    
+                    if (time - element.scrollNavigation.lastDragUpdate > 1000/30.0) {
+                        core.scrollPanel(element, screenX - element.scrollNavigation.dragStartX)
+                        element.scrollNavigation.dragStartX = screenX;
+                        element.scrollNavigation.lastDragUpdate = time;
+                    }
                     
                     // Stop the click event from being generated on mouse up when the drag ends.
                     element.dataPanelIgnoreNextClick = true;
@@ -1474,15 +1490,30 @@
                 }
             },
           
-            dragDataPanelStop: function (element) {
+            dragDataPanelStop: function (element, dataPanel) {
                 element.scrollNavigation.dragStartX = undefined;
+                dataPanel.off('touchmove');
+                dataPanel.off('mousemove');
             }
         };
 
         // Utility functions
         // =================
         var tools = {
+            ktkGetNextDate: function(currentDate, scaleStep) {
+                for(var minIncrements = 1;; minIncrements++) {
+                    var nextDate = new Date(currentDate);
+                    nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
 
+                    if(nextDate.getTime() != currentDate.getTime()) {
+                        return nextDate;
+                    }
+
+                    // If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
+                    // => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
+                }
+            },
+            
             // Return the maximum available date in data depending on the scale
             getMaxDate: function (element) {
                 var maxDate = null;
@@ -1606,7 +1637,7 @@
                     */
 
                     // GR Fix Begin
-                    current = ktkGetNextDate(dayStartTime, scaleStep);
+                    current = tools.ktkGetNextDate(dayStartTime, scaleStep);
                     // GR Fix End
 
                     i++;
@@ -1774,7 +1805,8 @@
                 repositionDelay: 0,
                 panelMaxPos: 0,
                 canScroll: true,
-                dragStartX: undefined
+                dragStartX: undefined,
+                lastDragUpdate: new Date().getTime(),
             };
 
             this.gantt = null;
@@ -1786,17 +1818,3 @@
 
     };
 })(jQuery);
-
-function ktkGetNextDate(currentDate, scaleStep) {
-    for(var minIncrements = 1;; minIncrements++) {
-        var nextDate = new Date(currentDate);
-        nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
-
-        if(nextDate.getTime() != currentDate.getTime()) {
-            return nextDate;
-        }
-
-        // If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
-        // => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
-    }
-}
