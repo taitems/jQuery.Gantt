@@ -27,20 +27,24 @@
 
     $.fn.gantt = function (options) {
 
+		var options = $.extend( {}, $.fn.gantt.defaults, options);
+    	
+		var labels = $.fn.gantt.labels[options.language];
+
         var cookieKey = "jquery.fn.gantt";
         var scales = ["hours", "days", "weeks", "months"];
         //Default settings
         var settings = {
             source: null,
             itemsPerPage: 7,
-            months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-            dow: ["S", "M", "T", "W", "T", "F", "S"],
+            months: labels.months,
+            dow: labels.daysofweek,
             navigate: "buttons",
             scale: "days",
             useCookie: false,
             maxScale: "months",
             minScale: "hours",
-            waitText: "Please wait...",
+            waitText: labels.wait,
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
             onRender: function() { return; },
@@ -1733,3 +1737,13 @@
 
     };
 })(jQuery);
+
+
+$.fn.gantt.labels = {
+		en:{months:["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"], daysofweek:["S", "M", "T", "W", "T", "F", "S"], wait:"Please, wait.."},
+		es:{months:["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"], daysofweek:["D", "L", "M", "X", "J", "V", "S"], wait:"Por favor, espere.."}
+}
+
+$.fn.gantt.defaults = {
+		language:	"en"
+}
