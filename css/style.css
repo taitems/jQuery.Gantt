@@ -227,6 +227,58 @@
     color: #714715 !important;
 }
 
+.fn-gantt .ganttMilestone,
+.fn-gantt .ganttMilestoneBlue,
+.fn-gantt .ganttMilestoneGold,
+.fn-gantt .ganttMilestoneGreen,
+.fn-gantt .ganttMilestoneOrange,
+.fn-gantt .ganttMilestonePurple,
+.fn-gantt .ganttMilestoneRed {
+	background-color: transparent;
+	background-image: url(../img/star_sprite.png) !important;
+	background-repeat: no-repeat;
+	color: transparent;
+	-webkit-box-shadow: 0 0 0px rgba(0,0,0,0.25) inset;
+	-moz-box-shadow: 0 0 0px rgba(0,0,0,0.25) inset;
+	box-shadow: 0 0 0px rgba(0,0,0,0.25) inset;
+}
+
+.fn-gantt .ganttMilestoneBlue {
+    background-position: 0px -3px !important;
+}
+
+.fn-gantt .ganttMilestone,
+.fn-gantt .ganttMilestoneGold {
+    background-position: 0px -27px !important;
+}
+
+.fn-gantt .ganttMilestoneGreen {
+    background-position: 0px -51px !important;
+}
+
+.fn-gantt .ganttMilestoneOrange {
+    background-position: 0px -75px !important;
+}
+
+.fn-gantt .ganttMilestonePurple {
+    background-position: 0px -99px !important;
+}
+
+.fn-gantt .ganttMilestoneRed {
+    background-position: 0px -123px !important;
+}
+
+.fn-gantt .ganttMilestone .fn-label,
+.fn-gantt .ganttMilestoneBlue .fn-label,
+.fn-gantt .ganttMilestoneGold .fn-label,
+.fn-gantt .ganttMilestoneGreen .fn-label,
+.fn-gantt .ganttMilestoneOrange .fn-label,
+.fn-gantt .ganttMilestonePurple .fn-label,
+.fn-gantt .ganttMilestoneRed .fn-label {
+    margin-left: 21px;
+    overflow: visible;
+}
+
 
 /* === BOTTOM NAVIGATION === */
 
