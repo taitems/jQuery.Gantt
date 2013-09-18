@@ -35,6 +35,7 @@
             itemsPerPage: 7,
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
             dow: ["S", "M", "T", "W", "T", "F", "S"],
+            pageOfText: "of",
             navigate: "buttons",
             scale: "days",
             useCookie: false,
@@ -769,7 +770,7 @@
                                     }))
                                 .append($('<div class="page-number"/>')
                                         .append($('<span/>')
-                                            .html(element.pageNum + 1 + ' of ' + element.pageCount)))
+                                            .html(element.pageNum + 1 + ' ' + settings.pageOfText + ' ' + element.pageCount)))
                                 .append($('<span role="button" class="nav-link nav-page-next"/>')
                                     .html('&gt;')
                                     .click(function () {
