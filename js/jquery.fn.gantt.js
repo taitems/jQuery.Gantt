@@ -947,7 +947,7 @@
                 if (desc) {
                     bar
                       .mouseover(function (e) {
-                          var hint = $('<div class="fn-gantt-hint" />').html(desc);
+                          var hint = $('<div class="fn-gantt-hint" />').addClass(cls).html(desc);
                           $("body").append(hint);
                           hint.css("left", e.pageX);
                           hint.css("top", e.pageY);
