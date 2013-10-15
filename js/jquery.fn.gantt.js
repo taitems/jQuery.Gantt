@@ -945,20 +945,22 @@
                         .data("dataObj", dataObj);
 
                 if (desc) {
+                    var hint;
                     bar
                       .mouseover(function (e) {
-                          var hint = $('<div class="fn-gantt-hint" />').html(desc);
-                          $("body").append(hint);
-                          hint.css("left", e.pageX);
-                          hint.css("top", e.pageY);
+                          if (!hint) {
+                              hint = $('<div class="fn-gantt-hint" />').html(desc);
+                          }
+
+                          $(this).append(hint);
+                          core.updateHintPosition(hint, e);
                           hint.show();
                       })
                       .mouseout(function () {
-                          $(".fn-gantt-hint").remove();
+                          hint = hint.detach();
                       })
                       .mousemove(function (e) {
-                          $(".fn-gantt-hint").css("left", e.pageX);
-                          $(".fn-gantt-hint").css("top", e.pageY + 15);
+                          core.updateHintPosition(hint, e);
                       });
                 }
                 bar.click(function (e) {
@@ -966,6 +968,23 @@
                     settings.onItemClick($(this).data("dataObj"));
                 });
                 return bar;
+            },
+
+            // updates the x/y position of the bar hint
+            // offsetX/Y is available in Chrome/IE but not Firefox
+            // see http://bugs.jquery.com/ticket/8523
+            updateHintPosition: function(hint, e) {
+                var hintOffset = 15;
+                var x = e.offsetX, y = e.offsetY;
+
+                if (typeof x === "undefined" || typeof y === "undefined") {
+                    var targetOffset = $(e.target).offset();
+                    x = e.pageX - targetOffset.left;
+                    y = e.pageY - targetOffset.top;
+                }
+
+                hint.css("left", x + hintOffset);
+                hint.css("top", y + hintOffset);
             },
 
             // Remove the `wd` (weekday) class and add `today` class to the
