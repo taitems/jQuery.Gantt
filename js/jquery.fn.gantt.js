@@ -44,7 +44,8 @@
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
             onRender: function() { return; },
-            scrollToToday: true
+            scrollToToday: true,
+            paginate: true
         };
 
         /**
@@ -327,8 +328,8 @@
 
                 var entries = [];
                 $.each(element.data, function (i, entry) {
-                    if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + i % settings.itemsPerPage * tools.getCellSize() + '">');
+                    if (!settings.paginate || (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage))) {
+                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + (settings.paginate ? i % settings.itemsPerPage : i) * tools.getCellSize() + '">');
                         entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
                         entries.push('</div>');
 
@@ -756,26 +757,29 @@
 
             // **Navigation**
             navigation: function (element) {
-                var ganttNavigate = null;
+                var ganttNavigate = $('<div class="navigate" />');
                 // Scrolling navigation is provided by setting
                 // `settings.navigate='scroll'`
-                if (settings.navigate === "scroll") {
-                    ganttNavigate = $('<div class="navigate" />')
-                        .append($('<div class="nav-slider" />')
-                            .append($('<div class="nav-slider-left" />')
-                                .append($('<button type="button" class="nav-link nav-page-back"/>')
+				var paginateNav = [];
+                if (settings.paginate) {
+                    paginateNav.push($('<button type="button" class="nav-link nav-page-back" title="Up"/>')
                                     .html('&lt;')
                                     .click(function () {
                                         core.navigatePage(element, -1);
-                                    }))
-                                .append($('<div class="page-number"/>')
+                                    }).get(0));
+                    paginateNav.push($('<div class="page-number"/>')
                                         .append($('<span/>')
-                                            .html(element.pageNum + 1 + ' of ' + element.pageCount)))
-                                .append($('<button type="button" class="nav-link nav-page-next"/>')
+                                            .html(element.pageNum + 1 + ' of ' + element.pageCount)).get(0));
+                    paginateNav.push($('<button type="button" class="nav-link nav-page-next" title="Down"/>')
                                     .html('&gt;')
                                     .click(function () {
                                         core.navigatePage(element, 1);
-                                    }))
+                                    }).get(0));
+                };
+                if (settings.navigate === "scroll") {
+                    ganttNavigate.append($('<div class="nav-slider" />')
+                            .append($('<div class="nav-slider-left" />')
+                                .append($(paginateNav))
                                 .append($('<button type="button" class="nav-link nav-now"/>')
                                     .html('&#9679;')
                                     .click(function () {
@@ -861,26 +865,14 @@
                                         core.zoomInOut(element, 1);
                                     }))
                                     )
-                                );
+                                );			
                     $(document).mouseup(function () {
                         element.scrollNavigation.scrollerMouseDown = false;
                     });
                 // Button navigation is provided by setting `settings.navigation='buttons'`
                 } else {
-                    ganttNavigate = $('<div class="navigate" />')
-                        .append($('<button type="button" class="nav-link nav-page-back"/>')
-                            .html('&lt;')
-                            .click(function () {
-                                core.navigatePage(element, -1);
-                            }))
-                        .append($('<div class="page-number"/>')
-                                .append($('<span/>')
-                                    .html(element.pageNum + 1 + ' of ' + element.pageCount)))
-                        .append($('<button type="button" class="nav-link nav-page-next"/>')
-                            .html('&gt;')
-                            .click(function () {
-                                core.navigatePage(element, 1);
-                            }))
+                    ganttNavigate
+                        .append($(paginateNav))
                         .append($('<button type="button" class="nav-link nav-begin"/>')
                             .html('&#124;&lt;')
                             .click(function () {
@@ -1005,7 +997,7 @@
                 };
                 // Loop through the values of each data element and set a row
                 $.each(element.data, function (i, entry) {
-                    if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
+                    if (!settings.paginate || (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage))) {
 
                         $.each(entry.values, function (j, day) {
                             var _bar = null;
