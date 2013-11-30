@@ -329,7 +329,7 @@
                 var entries = [];
                 $.each(element.data, function (i, entry) {
                     if (!settings.paginate || (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage))) {
-                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + i % settings.itemsPerPage * tools.getCellSize() + '">');
+                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + (settings.paginate ? i % settings.itemsPerPage : i) * tools.getCellSize() + '">');
                         entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
                         entries.push('</div>');
 
