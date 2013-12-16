@@ -266,6 +266,7 @@
                 content.append(core.navigation(element));
 
                 var $dataPanel = $rightPanel.find(".dataPanel");
+                var $dataPanelBackground = $rightPanel.find(".dataPanelBackground");
 
                 element.gantt = $('<div class="fn-gantt" />').append(content);
 
@@ -313,6 +314,7 @@
                 }
 
                 $dataPanel.css({ height: $leftPanel.height() });
+				$dataPanelBackground.css({ height: $dataPanel.height(), width: $dataPanel.width() });
                 core.waitToggle(element, false);
                 settings.onRender();
             },
@@ -750,10 +752,34 @@
 
                         break;
                 }
-
-                return $('<div class="rightPanel"></div>').append(dataPanel);
+				var svgBackground = $('<svg class="dataPanelBackground" style="width:100%;position:absolute;">' +
+'  <pattern id="bck" width="70" height="1000" patternUnits="userSpaceOnUse">'+
+'     <rect width="70" height="1000" style="fill:rgb(0,0,0);fill-opacity:0" />'+
+'     <g class="weekendBar"><rect x="50" width="20" height="1000" style="fill:rgb(240,240,240);" />'+
+'     <path d="M 50.25 0 L 50.25 1000 M 69.75 0 L 69.75 1000" style="stroke:rgb(200,200,200);stroke-width: 0.5" /></g>'+
+'  </pattern>'+
+'  <g transform="scale(2.4 1)">'+
+'  <rect width="100000" height="10000" fill="url(#bck)" />'+
+'  <rect class="todayBar" x="20" width="10" height="10000" style="fill:rgb(247,252,217")" />'+
+'  </g>'+
+'</svg>');
+				core.setupBackground(svgBackground,range[0]);
+                return $('<div class="rightPanel"></div>').append(svgBackground).append(dataPanel);
             },
 
+			// **setupBackground**
+			setupBackground: function (background,startDay) {
+				var startDays = Math.floor(startDay.getTime()/86400000);
+				var todayDays = Math.floor((new Date()).getTime()/86400000);
+				var daysOffset = todayDays - startDays - 1;
+				var svgOffset = daysOffset * 10;
+				$('.todayBar', background).removeAttr("x").attr("x",svgOffset);
+				
+				var weekdayOffset = (-startDay.getDay()+1);
+				if (weekdayOffset > 0) weekdayOffset -= 7;
+				$('.weekendBar',background).removeAttr("transform").attr("transform",'translate(' + weekdayOffset*10 + ' 0)');
+			},
+			
             // **Navigation**
             navigation: function (element) {
                 var ganttNavigate = null;
@@ -1166,6 +1192,7 @@
             navigateTo: function (element, val) {
                 var $rightPanel = $(element).find(".fn-gantt .rightPanel");
                 var $dataPanel = $rightPanel.find(".dataPanel");
+				var $scollPanels = $dataPanel.add($rightPanel.find(".dataPanelBackground"));
                 var rightPanelWidth = $rightPanel.width();
                 var dataPanelWidth = $dataPanel.width();
 
@@ -1179,34 +1206,34 @@
                     case "end":
                         var mLeft = dataPanelWidth - rightPanelWidth;
                         element.scrollNavigation.panelMargin = mLeft * -1;
-                        $dataPanel.animate({
+                        $scollPanels.animate({
                             "margin-left": "-" + mLeft + "px"
                         }, "fast", function () { core.repositionLabel(element); });
                         break;
                     case "now":
-                        if (!element.scrollNavigation.canScroll || !$dataPanel.find(".today").length) {
+                        if (!element.scrollNavigation.canScroll || !$scollPanels.find(".today").length) {
                             return false;
                         }
                         var max_left = (dataPanelWidth - rightPanelWidth) * -1;
-                        var cur_marg = $dataPanel.css("margin-left").replace("px", "");
-                        var val = $dataPanel.find(".today").offset().left - $dataPanel.offset().left;
+                        var cur_marg = $scollPanels.css("margin-left").replace("px", "");
+                        var val = $scollPanels.find(".today").offset().left - $scollPanels.offset().left;
                         val *= -1;
                         if (val > 0) {
                             val = 0;
                         } else if (val < max_left) {
                             val = max_left;
                         }
-                        $dataPanel.animate({
+                        $scollPanels.animate({
                             "margin-left": val + "px"
                         }, "fast", core.repositionLabel(element));
                         element.scrollNavigation.panelMargin = val;
                         break;
                     default:
                         var max_left = (dataPanelWidth - rightPanelWidth) * -1;
-                        var cur_marg = $dataPanel.css("margin-left").replace("px", "");
+                        var cur_marg = $scollPanels.css("margin-left").replace("px", "");
                         var val = parseInt(cur_marg, 10) + val;
                         if (val <= 0 && val >= max_left) {
-                            $dataPanel.animate({
+                            $scollPanels.animate({
                                 "margin-left": val + "px"
                             }, "fast", core.repositionLabel(element));
                         }
@@ -1322,7 +1349,8 @@
 
             // Move chart via slider control
             sliderScroll: function (element, e) {
-                var $sliderBar = $(element).find(".nav-slider-bar");
+                var $scrollPanels = $(".fn-gantt .dataPanel, .fn-gantt .dataPanelBackground",element);
+               var $sliderBar = $(element).find(".nav-slider-bar");
                 var $sliderBarBtn = $sliderBar.find(".nav-slider-button");
                 var $rightPanel = $(element).find(".fn-gantt .rightPanel");
                 var $dataPanel = $rightPanel.find(".dataPanel");
@@ -1341,16 +1369,17 @@
                     mLeft = $dataPanel.width() - $rightPanel.width();
 
                     var pPos = pos * mLeft / bWidth * -1;
-                    if (pPos >= 0) {
-                        $dataPanel.css("margin-left", "0px");
+					if (pPos >= 0) {
+                        $scrollPanels.css("margin-left", "0px");
                         element.scrollNavigation.panelMargin = 0;
                     } else if (pos >= bWidth - (wButton * 1)) {
-                        $dataPanel.css("margin-left", mLeft * -1 + "px");
+                        $scrollPanels.css("margin-left", mLeft * -1 + "px");
                         element.scrollNavigation.panelMargin = mLeft * -1;
                     } else {
-                        $dataPanel.css("margin-left", pPos + "px");
+                        $scrollPanels.css("margin-left", pPos + "px");
                         element.scrollNavigation.panelMargin = pPos;
                     }
+
                     clearTimeout(element.scrollNavigation.repositionDelay);
                     element.scrollNavigation.repositionDelay = setTimeout(core.repositionLabel, 5, element);
                 }
@@ -1361,16 +1390,17 @@
                 if (!element.scrollNavigation.canScroll) {
                     return false;
                 }
+				var $scrollPanels = $(".fn-gantt .dataPanel, .fn-gantt .dataPanelBackground",element);
                 var _panelMargin = parseInt(element.scrollNavigation.panelMargin, 10) + delta;
                 if (_panelMargin > 0) {
                     element.scrollNavigation.panelMargin = 0;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin + "px");
+                    $scrollPanels.css("margin-left", element.scrollNavigation.panelMargin + "px");
                 } else if (_panelMargin < element.scrollNavigation.panelMaxPos * -1) {
                     element.scrollNavigation.panelMargin = element.scrollNavigation.panelMaxPos * -1;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin + "px");
+                    $scrollPanels.css("margin-left", element.scrollNavigation.panelMargin + "px");
                 } else {
                     element.scrollNavigation.panelMargin = _panelMargin;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin + "px");
+                    $scrollPanels.css("margin-left", element.scrollNavigation.panelMargin + "px");
                 }
                 core.synchronizeScroller(element);
             },
