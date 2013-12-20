@@ -758,26 +758,46 @@
 '     <g class="weekendBar"><rect x="50" width="20" height="1000" style="fill:rgb(240,240,240);" />'+
 '     <path d="M 50.25 0 L 50.25 1000 M 69.75 0 L 69.75 1000" style="stroke:rgb(200,200,200);stroke-width: 0.5" /></g>'+
 '  </pattern>'+
-'  <g transform="scale(2.4 1)">'+
+'  <g class="ganttBackground" transform="scale(2.4 1)">'+
 '  <rect width="100000" height="10000" fill="url(#bck)" />'+
 '  <rect class="todayBar" x="20" width="10" height="10000" style="fill:rgb(247,252,217")" />'+
 '  </g>'+
 '</svg>');
-				core.setupBackground(svgBackground,range[0]);
+				core.setupBackground(svgBackground,range[0],element.scaleStep);
                 return $('<div class="rightPanel"></div>').append(svgBackground).append(dataPanel);
             },
 
 			// **setupBackground**
-			setupBackground: function (background,startDay) {
+			setupBackground: function (background,startDay,scaleStep) {
+				//Calculate offset of today's date and set
 				var startDays = Math.floor(startDay.getTime()/86400000);
 				var todayDays = Math.floor((new Date()).getTime()/86400000);
 				var daysOffset = todayDays - startDays - 1;
 				var svgOffset = daysOffset * 10;
 				$('.todayBar', background).removeAttr("x").attr("x",svgOffset);
-				
+				//Calculate offset of weekend
 				var weekdayOffset = (-startDay.getDay()+1);
 				if (weekdayOffset > 0) weekdayOffset -= 7;
+				//Calculate scale of background
+				var scale = 0;
+				switch (settings.scale) {
+					case "weeks":
+						scale = tools.getCellSize() / 7;
+						break;
+					case "months":
+						scale = tools.getCellSize() / 30.417;
+						break;
+					case "hours":
+						
+						scale = tools.getCellSize() * ((scaleStep == 9) ? 3 : 2);
+						break;
+					case "days":
+						scale = tools.getCellSize();
+						break;
+				}
+				scale = scale/10;
 				$('.weekendBar',background).removeAttr("transform").attr("transform",'translate(' + weekdayOffset*10 + ' 0)');
+				$('.ganttBackground',background).removeAttr("transform").attr("transform",'scale(' + scale + ' 1)');
 			},
 			
             // **Navigation**
