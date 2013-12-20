@@ -106,13 +106,8 @@
         // the week # for the year.
         // It is used to add an id to the week divs
         Date.prototype.getWeekId = function () {
-            var y = this.getFullYear();
-            var w = this.getDayForWeek().getWeekOfYear();
-            var m = this.getMonth();
-            if (m === 11 && w === 1) {
-                y++;
-            }
-            return 'dh-' + y + "-" + w;
+			var wk = this.getDayForWeek();
+            return 'dh-' + wk.getFullYear() + "-" + wk.getWeekOfYear();
         };
 
         // `getRepDate` returns the seconds since the epoch for a given date
