@@ -102,9 +102,6 @@
 .fn-gantt .dataPanel {
     margin-left: 0px;
     border-right: 1px solid #DDD;
-    background-image: url(../img/grid.png);
-    background-repeat: repeat;
-    background-position: 24px 24px;
     position: relative;
 }
 .fn-gantt .day, .fn-gantt .date {
