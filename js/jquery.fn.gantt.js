@@ -1498,8 +1498,8 @@
                         minDate.setHours(Math.floor((minDate.getHours()) / element.scaleStep) * element.scaleStep);
                         minDate.setHours(minDate.getHours() - element.scaleStep * 3);
                         minDate.setMinutes(0);
-			minDate.setSeconds(0);
-			minDate.setMilliseconds(0);
+                        minDate.setSeconds(0);
+                        minDate.setMilliseconds(0);
                         break;
                     case "weeks":
                         var bd = new Date(minDate.getTime());
