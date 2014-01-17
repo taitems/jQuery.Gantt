@@ -42,7 +42,7 @@
 			</h1>
 
 			<p>
-				<strong>Expected behaviour:</strong> Gantt bar should run from "now" until 2.5 hours from now. Both bars should be offset from the hour mark according to the number of minutes past. It fails when all the bars are docked left at the hour view.
+				<strong>Expected behaviour:</strong> Gantt bar should run from "now" until 2 hours 20 minutes from now. Both bars should be offset from the hour mark according to the number of minutes past. It fails when all the bars are docked left at the hour view.
 			</p>
 
 			<p>
@@ -57,7 +57,7 @@
 
     </body>
 	<script src="../js/jquery.min.js"></script>
-	<script src="../js/jquery.fn.gantt.js"></script>
+	<script src="../js/jquery.fn.gantt.min.js"></script>
 	<script src="moment.min.js"></script>
 	<script src="http://netdna.bootstrapcdn.com/twitter-bootstrap/2.3.2/js/bootstrap.min.js"></script>
 	<script src="http://taitems.github.com/UX-Lab/core/js/prettify.js"></script>
@@ -68,10 +68,10 @@
 			"use strict";
 
 			var today = moment();
-			var andTwoHoursThirty = moment().add("hours",2).add("minutes",30);
+			var andTwoHoursTwenty = moment().add("hours",2).add("minutes",20);
 
 			var today_friendly = "/Date(" + today.valueOf() + ")/";
-			var next_friendly = "/Date(" + andTwoHoursThirty.valueOf() + ")/";
+			var next_friendly = "/Date(" + andTwoHoursTwenty.valueOf() + ")/";
 
 			$(".gantt").gantt({
 				source: [{
