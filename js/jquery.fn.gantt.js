@@ -44,7 +44,8 @@
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
             onRender: function() { return; },
-            scrollToToday: true
+            scrollToToday: true,
+            showFractionalHours: false
         };
 
         /**
@@ -506,7 +507,7 @@
                             }
                             hoursInDay++;
 
-                            horArr.push('<div class="row day '
+                            horArr.push('<div class="row day dh '
                                     + day_class
                                     + '" id="dh-'
                                     + rday.getTime()
@@ -595,7 +596,7 @@
                             daysInMonth++;
 
                             // Fill weeks
-                            dayArr.push('<div class="row day wd" '
+                            dayArr.push('<div class="row day wd dh" '
                                     + ' id="' + rday.getWeekId() + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '"> '
                                     + ' <div class="fn-label">' + rday.getWeekOfYear() + '</div></div>');
                         }
@@ -644,7 +645,7 @@
                                 daysInYear = 0;
                             }
                             daysInYear++;
-                            monthArr.push('<div class="row day wd" id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '">' + (1 + rday.getMonth()) + '</div>');
+                            monthArr.push('<div class="row day wd dh" id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '">' + (1 + rday.getMonth()) + '</div>');
                         }
 
 
@@ -1013,14 +1014,23 @@
                             switch (settings.scale) {
                                 // **Hourly data**
                                 case "hours":
+                                    // In fractional hour aware charts, this determines the pixel delta of d_from and d_to relative to the hour tick-mark
+                                    var pixelOffsetFactor = tools.getCellSize() / (3600000.0*element.scaleStep);
+                                    
                                     var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
+                                    var dFromDelta = settings.showFractionalHours ?
+                                            (tools.dateDeserialize(day.from).getTime() - dFrom) * pixelOffsetFactor :
+                                            0;
                                     var from = $(element).find('#dh-' + dFrom);
 
                                     var dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
+                                    var dToDelta = settings.showFractionalHours ?
+                                            (tools.dateDeserialize(day.to).getTime() - dTo) * pixelOffsetFactor :
+                                            0;
                                     var to = $(element).find('#dh-' + dTo);
 
-                                    var cFrom = from.attr("offset");
-                                    var cTo = to.attr("offset");
+                                    var cFrom = parseInt(from.attr("offset")) + dFromDelta;
+                                    var cTo = parseInt(to.attr("offset")) + dToDelta;
                                     var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
 
                                     _bar = core.createProgressBar(
@@ -1487,6 +1497,9 @@
                     case "hours":
                         minDate.setHours(Math.floor((minDate.getHours()) / element.scaleStep) * element.scaleStep);
                         minDate.setHours(minDate.getHours() - element.scaleStep * 3);
+                        minDate.setMinutes(0);
+			minDate.setSeconds(0);
+			minDate.setMilliseconds(0);
                         break;
                     case "weeks":
                         var bd = new Date(minDate.getTime());
