@@ -770,7 +770,7 @@
                                     }))
                                 .append($('<div class="page-number"/>')
                                         .append($('<span/>')
-                                            .html(element.pageNum + 1 + ' of ' + element.pageCount)))
+                                            .html(element.pageNum + 1 + ' / ' + element.pageCount)))
                                 .append($('<button type="button" class="nav-link nav-page-next"/>')
                                     .html('&gt;')
                                     .click(function () {
