@@ -931,7 +931,7 @@
             // **Progress Bar**
             // Return an element representing a progress of position within
             // the entire chart
-            createProgressBar: function (days, cls, desc, label, dataObj) {
+            createProgressBar: function (days, cls, clsh, desc, label, dataObj) {
                 var cellWidth = tools.getCellSize();
                 var barMarg = tools.getProgressBarMargin() || 0;
                 var bar = $('<div class="bar"><div class="fn-label">' + label + '</div></div>')
@@ -944,7 +944,7 @@
                 if (desc) {
                     bar
                       .mouseover(function (e) {
-                          var hint = $('<div class="fn-gantt-hint" />').html(desc);
+                          var hint = $('<div class="fn-gantt-hint" />').addClass(clsh).html(desc);
                           $("body").append(hint);
                           hint.css("left", e.pageX);
                           hint.css("top", e.pageY);
@@ -1024,6 +1024,7 @@
                                     _bar = core.createProgressBar(
                                                 dl,
                                                 day.customClass ? day.customClass : "",
+                                                day.customHintClass ? day.customHintClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
                                                 day.dataObj ? day.dataObj : null
@@ -1067,6 +1068,7 @@
                                     _bar = core.createProgressBar(
                                              dl,
                                              day.customClass ? day.customClass : "",
+                                             day.customHintClass ? day.customHintClass : "",
                                              day.desc ? day.desc : "",
                                              day.label ? day.label : "",
                                             day.dataObj ? day.dataObj : null
@@ -1107,6 +1109,7 @@
                                     _bar = core.createProgressBar(
                                         dl,
                                         day.customClass ? day.customClass : "",
+                                        day.customHintClass ? day.customHintClass : "",
                                         day.desc ? day.desc : "",
                                         day.label ? day.label : "",
                                         day.dataObj ? day.dataObj : null
@@ -1133,6 +1136,7 @@
                                     _bar = core.createProgressBar(
                                                 dl,
                                                 day.customClass ? day.customClass : "",
+                                                day.customHintClass ? day.customHintClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
                                                 day.dataObj ? day.dataObj : null
