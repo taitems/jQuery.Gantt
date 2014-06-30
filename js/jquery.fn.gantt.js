@@ -43,7 +43,7 @@
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
-            onRender: function () { return; },
+            onRender: function() { return; },
             scrollToToday: true
         };
 
@@ -185,7 +185,7 @@
 
         // fixes https://github.com/taitems/jQuery.Gantt/issues/62
         function ktkGetNextDate(currentDate, scaleStep) {
-            for (var minIncrements = 1; ; minIncrements++) {
+            for(var minIncrements = 1;; minIncrements++) {
                 var nextDate = new Date(currentDate);
                 nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
 
@@ -205,7 +205,7 @@
         var core = {
             // Return the element whose topmost point lies under the given point
             // Normalizes for old browsers
-            elementFromPoint: (function () { // IIFE
+            elementFromPoint: (function(){ // IIFE
                 // version for normal browsers
                 if (document.compatMode === "CSS1Compat") {
                     return function (x, y) {
@@ -291,7 +291,7 @@
                 if (settings.scrollToToday) {
                     core.navigateTo(element, 'now');
                     core.scrollPanel(element, 0);
-                    // or, scroll the grid to the left most date in the panel
+                // or, scroll the grid to the left most date in the panel
                 } else {
                     if (element.hPosition !== 0) {
                         if (element.scaleOldWidth) {
@@ -490,7 +490,7 @@
                                 day_class = "holiday";
                             }
                             if (rgetDay !== getDay) {
-                                var day_class2 = (today - day === 0) ? "today" : tools.isHoliday(day.getTime()) ? "holiday" : dowClass[getDay];
+                                var day_class2 = (today - day === 0) ? "today" : tools.isHoliday( day.getTime() ) ? "holiday" : dowClass[getDay];
 
                                 dayArr.push('<div class="row date ' + day_class2 + '" '
                                         + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
@@ -530,7 +530,7 @@
 
                         var day_class = dowClass[day.getDay()];
 
-                        if (tools.isHoliday(day)) {
+                        if ( tools.isHoliday(day) ) {
                             day_class = "holiday";
                         }
 
@@ -554,7 +554,7 @@
 
                         break;
 
-                        // **Weeks**
+                    // **Weeks**
                     case "weeks":
                         range = tools.parseWeeksRange(element.dateStart, element.dateEnd);
                         yearArr = ['<div class="row"/>'];
@@ -619,7 +619,7 @@
 
                         break;
 
-                        // **Months**
+                    // **Months**
                     case 'months':
                         range = tools.parseMonthsRange(element.dateStart, element.dateEnd);
 
@@ -670,7 +670,7 @@
 
                         break;
 
-                        // **Days (default)**
+                    // **Days (default)**
                     default:
                         range = tools.parseDateRange(element.dateStart, element.dateEnd);
 
@@ -710,7 +710,7 @@
 
                             var getDay = rday.getDay();
                             var day_class = dowClass[getDay];
-                            if (tools.isHoliday(rday)) {
+                            if ( tools.isHoliday(rday) ) {
                                 day_class = "holiday";
                             }
 
@@ -863,7 +863,7 @@
                     $(document).mouseup(function () {
                         element.scrollNavigation.scrollerMouseDown = false;
                     });
-                    // Button navigation is provided by setting `settings.navigation='buttons'`
+                // Button navigation is provided by setting `settings.navigation='buttons'`
                 } else {
                     ganttNavigate = $('<div class="navigate" />')
                         .append($('<button type="button" class="nav-link nav-page-back"/>')
@@ -931,7 +931,7 @@
             // **Progress Bar**
             // Return an element representing a progress of position within
             // the entire chart
-            createProgressBar: function (days, cls, clsh, desc, label, dataObj) {
+            createProgressBar: function (days, cls, desc, label, dataObj) {
                 var cellWidth = tools.getCellSize();
                 var barMarg = tools.getProgressBarMargin() || 0;
                 var bar = $('<div class="bar"><div class="fn-label">' + label + '</div></div>')
@@ -944,7 +944,7 @@
                 if (desc) {
                     bar
                       .mouseover(function (e) {
-                          var hint = $('<div class="fn-gantt-hint" />').addClass(clsh).html(desc);
+                          var hint = $('<div class="fn-gantt-hint" />').html(desc);
                           $("body").append(hint);
                           hint.css("left", e.pageX);
                           hint.css("top", e.pageY);
@@ -1024,7 +1024,6 @@
                                     _bar = core.createProgressBar(
                                                 dl,
                                                 day.customClass ? day.customClass : "",
-                                                day.customHintClass ? day.customHintClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
                                                 day.dataObj ? day.dataObj : null
@@ -1039,7 +1038,7 @@
                                     datapanel.append(_bar);
                                     break;
 
-                                    // **Weekly data**
+                                // **Weekly data**
                                 case "weeks":
                                     var dtFrom = tools.dateDeserialize(day.from);
                                     var dtTo = tools.dateDeserialize(day.to);
@@ -1068,7 +1067,6 @@
                                     _bar = core.createProgressBar(
                                              dl,
                                              day.customClass ? day.customClass : "",
-                                             day.customHintClass ? day.customHintClass : "",
                                              day.desc ? day.desc : "",
                                              day.label ? day.label : "",
                                             day.dataObj ? day.dataObj : null
@@ -1083,7 +1081,7 @@
                                     datapanel.append(_bar);
                                     break;
 
-                                    // **Monthly data**
+                                // **Monthly data**
                                 case "months":
                                     var dtFrom = tools.dateDeserialize(day.from);
                                     var dtTo = tools.dateDeserialize(day.to);
@@ -1109,7 +1107,6 @@
                                     _bar = core.createProgressBar(
                                         dl,
                                         day.customClass ? day.customClass : "",
-                                        day.customHintClass ? day.customHintClass : "",
                                         day.desc ? day.desc : "",
                                         day.label ? day.label : "",
                                         day.dataObj ? day.dataObj : null
@@ -1124,7 +1121,7 @@
                                     datapanel.append(_bar);
                                     break;
 
-                                    // **Days**
+                                // **Days**
                                 default:
                                     var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
                                     var dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
@@ -1136,7 +1133,6 @@
                                     _bar = core.createProgressBar(
                                                 dl,
                                                 day.customClass ? day.customClass : "",
-                                                day.customHintClass ? day.customHintClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
                                                 day.dataObj ? day.dataObj : null
@@ -1171,7 +1167,7 @@
                 var rightPanelWidth = $rightPanel.width();
                 var dataPanelWidth = $dataPanel.width();
                 var shift = function () {
-                    core.repositionLabel(element);
+                  core.repositionLabel(element);
                 };
                 switch (val) {
                     case "begin":
@@ -1302,10 +1298,10 @@
                 e.preventDefault(); // e is a jQuery Event
 
                 // attempts to normalize scroll wheel velocity
-                var delta = ('detail' in e ? e.detail :
-                              'wheelDelta' in e.originalEvent ? -1 / 120 * e.originalEvent.wheelDelta :
+                var delta = ( 'detail' in e ? e.detail :
+                              'wheelDelta' in e.originalEvent ? - 1/120 * e.originalEvent.wheelDelta :
                               e.originalEvent.deltaY ? e.originalEvent.deltaY / Math.abs(e.originalEvent.deltaY) :
-                              e.originalEvent.detail);
+                              e.originalEvent.detail );
 
                 // simpler normalization, ignoring per-device/browser/platform acceleration & semantic variations
                 //var delta = e.detail || - (e = e.originalEvent).wheelData || e.deltaY /* || e.deltaX */ || e.detail;
@@ -1426,7 +1422,7 @@
                     setTimeout(fn, 500);
 
                 } else if (element.loader) {
-                    element.loader.detach();
+                  element.loader.detach();
                 }
             }
         };
@@ -1538,7 +1534,7 @@
 
                 var ret = [];
                 var i = 0;
-                for (; ;) {
+                for(;;) {
                     var dayStartTime = new Date(current);
                     dayStartTime.setHours(Math.floor((current.getHours()) / scaleStep) * scaleStep);
 
@@ -1611,7 +1607,7 @@
                     date = date.replace(/\/Date\((.*)\)\//, "$1");
                     date = $.isNumeric(date) ? parseInt(date, 10) : $.trim(date);
                 }
-                return new Date(date);
+                return new Date( date );
             },
 
             // Generate an id for a date
@@ -1640,31 +1636,31 @@
             },
 
             // normalizes an array of dates into a map of start-of-day millisecond values
-            _datesToDays: function (dates) {
+            _datesToDays: function ( dates ) {
                 var dayMap = {};
                 for (var i = 0, len = dates.length, day; i < len; i++) {
-                    day = tools.dateDeserialize(dates[i]);
-                    dayMap[day.setHours(0, 0, 0, 0)] = true;
+                    day = tools.dateDeserialize( dates[i] );
+                    dayMap[ day.setHours(0, 0, 0, 0) ] = true;
                 }
                 return dayMap;
             },
             // Returns true when the given date appears in the array of holidays, if provided
-            isHoliday: (function () { // IIFE
+            isHoliday: (function() { // IIFE
                 // short-circuits the function if no holidays option was passed
                 if (!settings.holidays) {
-                    return function () { return false; };
+                  return function () { return false; };
                 }
                 var holidays = false;
                 // returns the function that will be used to check for holidayness of a given date
-                return function (date) {
+                return function(date) {
                     if (!holidays) {
-                        holidays = tools._datesToDays(settings.holidays);
+                      holidays = tools._datesToDays( settings.holidays );
                     }
                     return !!holidays[
                       // assumes numeric dates are already normalized to start-of-day
                       $.isNumeric(date) ?
-                        date :
-                      (new Date(date.getFullYear(), date.getMonth(), date.getDate())).getTime()
+                      date :
+                      ( new Date(date.getFullYear(), date.getMonth(), date.getDate()) ).getTime()
                     ];
                 };
             })(),
@@ -1763,4 +1759,3 @@
 
     };
 })(jQuery);
-
