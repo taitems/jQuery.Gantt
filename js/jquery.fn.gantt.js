@@ -32,6 +32,7 @@
         //Default settings
         var settings = {
             source: [],
+            topLevel: "",
             itemsPerPage: 7,
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
             dow: ["S", "M", "T", "W", "T", "F", "S"],
@@ -232,7 +233,11 @@
                     core.init(element);
                 } else {
                     $.getJSON(settings.source, function (jsData) {
-                        element.data = jsData;
+                        if (settings.topLevel === "") {
+                            element.data = jsData;
+                        } else {
+                            element.data = jsData[settings.topLevel];                            
+                        }
                         core.init(element);
                     });
                 }
