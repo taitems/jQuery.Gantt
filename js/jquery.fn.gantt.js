@@ -44,7 +44,8 @@
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
             onRender: function() { return; },
-            scrollToToday: true
+            scrollToToday: true,
+            captureVerticalWheel: true
         };
 
         /**
@@ -1292,6 +1293,12 @@
 
             // Move chart via mousewheel
             wheelScroll: function (element, e) {
+                
+                if (!settings.captureVerticalWheel && Math.abs(e.originalEvent.deltaY) > Math.abs(e.originalEvent.deltaX)) {
+                    // short-circuit vertical scroll - we do not want to intercept that one!
+                    return
+                }                
+                
                 e.preventDefault(); // e is a jQuery Event
 
                 // attempts to normalize scroll wheel velocity
