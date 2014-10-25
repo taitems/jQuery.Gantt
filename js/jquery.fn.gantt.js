@@ -139,19 +139,44 @@
 
         // `getWeekOfYear` returns the week number for the year
         Date.prototype.getWeekOfYear = function () {
-            var ys = new Date(this.getFullYear(), 0, 1);
-            var sd = new Date(this.getFullYear(), this.getMonth(), this.getDate());
-            if (ys.getDay() > 3) {
-                ys = new Date(sd.getFullYear(), 0, (7 - ys.getDay()));
-            }
-            var daysCount = sd.getDayOfYear() - ys.getDayOfYear();
-            return Math.ceil(daysCount / 7);
-
+            var d = new Date(this.valueOf());
+            d.setHours(0, 0, 0);
+            // Set to nearest Thursday: current date + 4 - current day number
+            // Make Sunday's day number 7
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+            // Get first day of year
+            var yearStart = new Date(d.getFullYear(), 0, 1);
+            // Calculate full weeks to nearest Thursday
+            var weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+            // Return week number
+            return weekNo;
         };
 
         // `getDaysInMonth` returns the number of days in a month
         Date.prototype.getDaysInMonth = function () {
             return 32 - new Date(this.getFullYear(), this.getMonth(), 32).getDate();
+        };
+        
+        // `getWeekYear` return the year from the actual week number, not from the date (e.g. December 31th, 2014 it's actually in week 1 from 2015)
+        Date.prototype.getWeekYear = function () {
+            var d = new Date(this.valueOf());
+            d.setHours(0, 0, 0);
+            // Set to nearest Thursday: current date + 4 - current day number
+            // Make Sunday's day number 7
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+
+            return d.getFullYear();
+        };
+
+        // `getWeekMonth` return the month from the actual week number, not from the date (e.g. December 31th, 2014 it's actually in January, 2015)
+        Date.prototype.getWeekMonth = function () {
+            var d = new Date(this.valueOf());
+            d.setHours(0, 0, 0);
+            // Set to nearest Thursday: current date + 4 - current day number
+            // Make Sunday's day number 7
+            d.setDate(d.getDate() + 4 - (d.getDay() || 7));
+
+            return d.getMonth();
         };
 
         // `hasWeek` returns `true` if the date resides on a week boundary
@@ -567,27 +592,27 @@
                             var rday = range[i];
 
                             // Fill years
-                            if (rday.getFullYear() !== year) {
+                            if (rday.getWeekYear() !== year) {
                                 yearArr.push(
                                     ('<div class="row header year" style="width: '
                                         + tools.getCellSize() * daysInYear
                                         + 'px;"><div class="fn-label">'
                                         + year
                                         + '</div></div>'));
-                                year = rday.getFullYear();
+                                year = rday.getWeekYear();
                                 daysInYear = 0;
                             }
                             daysInYear++;
 
                             // Fill months
-                            if (rday.getMonth() !== month) {
+                            if (rday.getWeekMonth() !== month) {
                                 monthArr.push(
                                     ('<div class="row header month" style="width:'
                                        + tools.getCellSize() * daysInMonth
                                        + 'px;"><div class="fn-label">'
                                        + settings.months[month]
                                        + '</div></div>'));
-                                month = rday.getMonth();
+                                month = rday.getWeekMonth();
                                 daysInMonth = 0;
                             }
                             daysInMonth++;
@@ -737,14 +762,8 @@
                             + '</div></div>');
 
                         var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
-
-
-                        // Append panel elements
-
-                        dataPanel.append(yearArr.join(""));
-                        dataPanel.append(monthArr.join(""));
-                        dataPanel.append($('<div class="row" style="margin-left: 0;" />').html(dayArr.join("")));
-                        dataPanel.append($('<div class="row" style="margin-left: 0;" />').html(dowArr.join("")));
+                        
+                        dataPanel.append(yearArr.join("") + monthArr.join("") + dayArr.join("") + (dowArr.join("")));
 
                         break;
                 }
