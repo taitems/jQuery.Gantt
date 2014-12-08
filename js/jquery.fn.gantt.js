@@ -47,7 +47,8 @@
             onAddClick: function (data) { return; },
             onRender: function() { return; },
             onDataLoadFailed: function(data) { return; },
-            scrollToToday: true
+            scrollToToday: true,
+            showFractionalHours: true
         };
 
         /**
@@ -501,7 +502,7 @@
 
                                 var day_class2 = (today - day === 0) ? ' today' : (holidays.indexOf(getTime) > -1) ? "holiday" : dowClass[getDay];
 
-                                dayArr.push('<div class="row date ' + day_class2 + '" '
+                                dayArr.push('<div class="row date dh ' + day_class2 + '" '
                                         + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                         + ' <div class="fn-label">' + day.getDate() + '</div></div>');
                                 dowArr.push('<div class="row day ' + day_class2 + '" '
@@ -513,7 +514,7 @@
                             }
                             hoursInDay++;
 
-                            horArr.push('<div class="row day '
+                            horArr.push('<div class="row day dh '
                                     + day_class
                                     + '" id="dh-'
                                     + rday.getTime()
@@ -541,7 +542,7 @@
                             day_class = "holiday";
                         }
 
-                        dayArr.push('<div class="row date ' + day_class + '" '
+                        dayArr.push('<div class="row date dh" ' + day_class + '" '
                                 + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                 + ' <div class="fn-label">' + day.getDate() + '</div></div>');
 
@@ -649,7 +650,7 @@
                                 daysInYear = 0;
                             }
                             daysInYear++;
-                            monthArr.push('<div class="row day wd" id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '">' + (1 + rday.getMonth()) + '</div>');
+                            monthArr.push('<div class="row day wd dh" id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '">' + (1 + rday.getMonth()) + '</div>');
                         }
 
 
@@ -1034,21 +1035,29 @@
                             switch (settings.scale) {
                                 // **Hourly data**
                                 case "hours":
+                                    // In fractional hour aware charts, this determines the pixel delta of d_from and d_to relative to the hour tick-mark
+                                    var pixelOffsetFactor = tools.getCellSize() / (3600000.0*element.scaleStep);
+
                                     var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
+                                    var dFromDelta = settings.showFractionalHours ?
+                                            (tools.dateDeserialize(day.from).getTime() - dFrom) * pixelOffsetFactor :
+                                            0;
                                     var from = $(element).find('#dh-' + dFrom);
 
                                     var dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
+                                    var dToDelta = settings.showFractionalHours ?
+                                            (tools.dateDeserialize(day.to).getTime() - dTo) * pixelOffsetFactor :
+                                             0;
                                     var to = $(element).find('#dh-' + dTo);
 
                                     console.log(dFrom, dTo);
 
-                                    var cFrom = from.attr("offset");
-                                    var cTo = to.attr("offset");
+                                    var cFrom = parseInt(from.attr("offset")) + dFromDelta;
+                                    var cTo = parseInt(to.attr("offset")) + dToDelta;
                                     var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
 
                                     _bar = core.createProgressBar(
                                                 dl,
-                                                day.id ? day.id : "",
                                                 day.customClass ? day.customClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
@@ -1092,7 +1101,6 @@
 
                                     _bar = core.createProgressBar(
                                              dl,
-                                             day.id ? day.id : "",
                                              day.customClass ? day.customClass : "",
                                              day.desc ? day.desc : "",
                                              day.label ? day.label : "",
@@ -1133,7 +1141,6 @@
 
                                     _bar = core.createProgressBar(
                                         dl,
-                                        day.id ? day.id : "",
                                         day.customClass ? day.customClass : "",
                                         day.desc ? day.desc : "",
                                         day.label ? day.label : "",
@@ -1160,7 +1167,6 @@
                                     var dl = Math.floor(((dTo / 1000) - (dFrom / 1000)) / 86400) + 1;
                                     _bar = core.createProgressBar(
                                                 dl,
-                                                day.id ? day.id : "",
                                                 day.customClass ? day.customClass : "",
                                                 day.desc ? day.desc : "",
                                                 day.label ? day.label : "",
@@ -1506,6 +1512,9 @@
                     case "hours":
                         minDate.setHours(Math.floor((minDate.getHours()) / element.scaleStep) * element.scaleStep);
                         minDate.setHours(minDate.getHours() - element.scaleStep * 3);
+                        minDate.setMinutes(0);
+                        minDate.setSeconds(0);
+                        minDate.setMilliseconds(0);
                         break;
                     case "weeks":
                         var bd = new Date(minDate.getTime());
@@ -1640,6 +1649,8 @@
             },
 
             // Generate an id for a date
+            // Using the value for the current scale (zoom level) "arguments[1]", the start/end columns are determined by tructating the given time
+            // down to beginning of the proper column
             genId: function (ticks) {
                 var t = new Date(ticks);
                 switch (settings.scale) {
