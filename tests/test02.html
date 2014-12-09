@@ -67,11 +67,13 @@
 
 			"use strict";
 
+			var firstEventLen = 70;
+			var secondEventLen = 43;
 			var today = moment();
-			var andTwoHoursTwenty = moment();
+			var andTwoHoursTwenty = moment().add("minutes",firstEventLen);
 
-            var today2 = moment().add("hours",3);
-            var andTwoHoursTwenty2 = moment().add("hours",4);;
+            var today2 = moment().add("minutes",firstEventLen);
+            var andTwoHoursTwenty2 = moment().add("minutes",firstEventLen + secondEventLen);;
 
 			var today_friendly = "/Date(" + today.valueOf() + ")/";
 			var next_friendly = "/Date(" + andTwoHoursTwenty.valueOf() + ")/";
@@ -86,15 +88,15 @@
 					values: [{
 						from: today_friendly,
 						to: next_friendly,
-						label: "Test",
+						label: "Test1",
                         desc: "TEST POP!",
 						customClass: "ganttGreen"
 					},
                     {
                         from: today_friendly2,
                         to: next_friendly2,
-                        label: "Test",
-                        desc: "TEST POP!",
+                        label: "Test2",
+                        desc: "test 2",
                         customClass: "ganttOrange"
                     }]
 				}],

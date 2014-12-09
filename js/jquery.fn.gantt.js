@@ -47,8 +47,7 @@
             onAddClick: function (data) { return; },
             onRender: function() { return; },
             onDataLoadFailed: function(data) { return; },
-            scrollToToday: true,
-            showFractionalHours: true
+            scrollToToday: true
         };
 
         /**
@@ -1038,24 +1037,30 @@
                                     // In fractional hour aware charts, this determines the pixel delta of d_from and d_to relative to the hour tick-mark
                                     var pixelOffsetFactor = tools.getCellSize() / (3600000.0*element.scaleStep);
 
+                                    // dFrom/To: This is the truncated timestamp.
+                                    //     Truncated meaning it matches up with the beginning timestamp of the appropriate block (hour, hours, day...)
+                                    // dFromDelta: this is the delta between the actual time stamp and the truncated one (dFrom/To)
+                                    //     multiplied by the pixelOffset value
+                                    // from/to: The time display Div that this timestamp needs to be lined up with.
+                                    //     It does this by matching up our dFrom TS to the id of the Div
                                     var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
-                                    var dFromDelta = settings.showFractionalHours ?
-                                            (tools.dateDeserialize(day.from).getTime() - dFrom) * pixelOffsetFactor :
-                                            0;
+                                    var dFromDelta = (tools.dateDeserialize(day.from).getTime() - dFrom) * pixelOffsetFactor;
                                     var from = $(element).find('#dh-' + dFrom);
 
                                     var dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
-                                    var dToDelta = settings.showFractionalHours ?
-                                            (tools.dateDeserialize(day.to).getTime() - dTo) * pixelOffsetFactor :
-                                             0;
+                                    var dToDelta = (tools.dateDeserialize(day.to).getTime() - dTo) * pixelOffsetFactor;
                                     var to = $(element).find('#dh-' + dTo);
 
-                                    console.log(dFrom, dTo);
+                                    console.log("dFrom: " + dFrom + ", dTo: " + dTo);
 
+                                    // cFrom/To: gets the offset of the time display Div and adds the dFrom/To delta to it
+                                    // dl: gets the number of "Blocks" to that need to be filled for this event. This will be passed to createProgressBar to
+                                    //      determine the width this event element
                                     var cFrom = parseInt(from.attr("offset")) + dFromDelta;
                                     var cTo = parseInt(to.attr("offset")) + dToDelta;
-                                    var dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
+                                    var dl = (cTo - cFrom) / tools.getCellSize();
 
+                                    // Calls the function that actually creates the HTML element for this event
                                     _bar = core.createProgressBar(
                                                 dl,
                                                 day.customClass ? day.customClass : "",
@@ -1265,12 +1270,16 @@
             },
 
             // Change zoom level
+
+            // val: Param to tell if this is a zoom in or out. In = -1, out = 1
+            // todo: Add new elseif statement here for the minutes zooming later
             zoomInOut: function (element, val) {
                 core.waitToggle(element, true, function () {
 
                     var zoomIn = (val < 0);
 
                     var scaleSt = element.scaleStep + val * 3;
+                    // never allow scaleSt to be less than one. Also, transform 4s into 3s.
                     scaleSt = scaleSt <= 1 ? 1 : scaleSt === 4 ? 3 : scaleSt;
                     var scale = settings.scale;
                     var headerRows = element.headerRows;
