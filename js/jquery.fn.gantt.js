@@ -943,10 +943,11 @@
             createProgressBar: function (days, cls, desc, label, dataObj) {
                 var cellWidth = tools.getCellSize();
                 var barMarg = tools.getProgressBarMargin() || 0;
+                var eventWidth = (((cellWidth * days) - barMarg)) + 2;
                 var bar = $('<div class="bar"><div class="fn-label">' + label + '</div></div>')
                         .addClass(cls)
                         .css({
-                            width: ((cellWidth * days) - barMarg) + 2
+                            width: eventWidth
                         })
                         .data("dataObj", dataObj);
 
@@ -1037,21 +1038,24 @@
                                     // In fractional hour aware charts, this determines the pixel delta of d_from and d_to relative to the hour tick-mark
                                     var pixelOffsetFactor = tools.getCellSize() / (3600000.0*element.scaleStep);
 
+                                    var fromDateInMs = tools.dateDeserialize(day.from).getTime();
+                                    var toDateInMs = tools.dateDeserialize(day.to).getTime();
+
                                     // dFrom/To: This is the truncated timestamp.
                                     //     Truncated meaning it matches up with the beginning timestamp of the appropriate block (hour, hours, day...)
                                     // dFromDelta: this is the delta between the actual time stamp and the truncated one (dFrom/To)
                                     //     multiplied by the pixelOffset value
                                     // from/to: The time display Div that this timestamp needs to be lined up with.
                                     //     It does this by matching up our dFrom TS to the id of the Div
-                                    var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
-                                    var dFromDelta = (tools.dateDeserialize(day.from).getTime() - dFrom) * pixelOffsetFactor;
+                                    var dFrom = tools.genId(fromDateInMs, element.scaleStep);
+                                    var dFromDelta = (fromDateInMs - dFrom) * pixelOffsetFactor;
                                     var from = $(element).find('#dh-' + dFrom);
 
-                                    var dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
-                                    var dToDelta = (tools.dateDeserialize(day.to).getTime() - dTo) * pixelOffsetFactor;
+                                    var dTo = tools.genId(toDateInMs, element.scaleStep);
+                                    var dToDelta = (toDateInMs - dTo) * pixelOffsetFactor;
                                     var to = $(element).find('#dh-' + dTo);
 
-                                    console.log("dFrom: " + dFrom + ", dTo: " + dTo);
+                                    console.log("From: " + fromDateInMs + ", To: " + toDateInMs);
 
                                     // cFrom/To: gets the offset of the time display Div and adds the dFrom/To delta to it
                                     // dl: gets the number of "Blocks" to that need to be filled for this event. This will be passed to createProgressBar to
