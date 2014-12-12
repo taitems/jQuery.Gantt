@@ -49,6 +49,9 @@
     line-height: 24px;
     margin-left: -1px;
 }
+.fn-gantt .row.header {
+    margin-left: 0;
+}
 
 .fn-gantt .leftPanel .fn-label {
     display: inline-block;
