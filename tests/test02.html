@@ -33,31 +33,28 @@
 		</style>
     </head>
     <body>
+
 		<div class="contain">
+
 			<h1>
 				jQuery.Gantt
 				<small>&mdash; Test Suite 02</small>
 			</h1>
+
 			<p>
-				<strong>Expected behaviour:</strong>
-				Several events should be appearing with their start/end times matching the assigned times
+				<strong>Expected behaviour:</strong> Gantt bar should run from "now" until 2 hours 20 minutes from now. Both bars should be offset from the hour mark according to the number of minutes past. It fails when all the bars are docked left at the hour view.
 			</p>
-			<p>
-				<strong>Included Tests</strong>
-				<ul>
-					<li>Standard tests based on current time</li>
-					<li>New Years</li>
-					<li>Day light savings</li>
-				</ul>
-			</p>
+
 			<p>
 				<strong>Manual validation:</strong>
 				<ul>
 					<li>Passing</li>
 				</ul>
 			</p>
+				
 			<div class="gantt"></div>
 		</div>
+
     </body>
 	<script src="../js/jquery.min.js"></script>
 	<script src="../js/jquery.fn.gantt.js"></script>
@@ -69,88 +66,54 @@
 		$(function() {
 
 			"use strict";
-			// Create two consecutive test events and define their lengths
-			// Have the first event start time be the same as the time the chart was loaded
-			var firstTestEventLen = 70;
-			var secondTestEventLen = 45;
 
-			var firstTestEventStart = moment();
-			var firstTestEventEnd = moment().add("minutes",firstTestEventLen);
-			var firstTestEventStartFriendly = "/Date(" + firstTestEventStart.valueOf() + ")/";
-			var firstTestEventEndFriendly = "/Date(" + firstTestEventEnd.valueOf() + ")/";
+			var firstEventLen = 70;
+			var secondEventLen = 45;
+			var today = moment();
+			var andTwoHoursTwenty = moment().add("minutes",firstEventLen);
 
+            var today2 = moment().add("minutes",firstEventLen);
+            var andTwoHoursTwenty2 = moment().add("minutes",firstEventLen + secondEventLen);;
 
-			var secondTestEventStart = moment().add("minutes",firstTestEventLen);
-            var secondTestEventEnd = moment().add("minutes",firstTestEventLen + secondTestEventLen);;
-			var secondTestEventStartFriendly = "/Date(" + secondTestEventStart.valueOf() + ")/";
-            var secondTestEventEndFriendly = "/Date(" + secondTestEventEnd.valueOf() + ")/";
+			var today_friendly = "/Date(" + today.valueOf() + ")/";
+			var next_friendly = "/Date(" + andTwoHoursTwenty.valueOf() + ")/";
 
-			// Test for new years
-			var newYearTestStart = new Date("December 31, 2014 10:09:07");
-			var newYearTestEnd = new Date("January 1, 2015 02:13:35");
-			var newYearTestStartFriendly = "/Date(" + newYearTestStart.valueOf() + ")/";
-			var newYearTestEndFriendly =  "/Date(" + newYearTestEnd.valueOf() + ")/";
-
-			// Test for day light savings
-			var dayLightSavingsTestStart = new Date("March 07, 2015 22:09:07");
-			var dayLightSavingsTestEnd = new Date("March 08, 2015 03:13:35");
-			var dayLightSavingsTestStartFriendly = "/Date(" + dayLightSavingsTestStart.valueOf() + ")/";
-			var dayLightSavingsTestEndFriendly =  "/Date(" + dayLightSavingsTestEnd.valueOf() + ")/";
+            var today_friendly2 = "/Date(" + today2.valueOf() + ")/";
+            var next_friendly2 = "/Date(" + andTwoHoursTwenty2.valueOf() + ")/";
 
 			$(".gantt").gantt({
 				source: [{
 					name: "Testing",
 					desc: " ",
 					values: [{
-						from: firstTestEventStartFriendly,
-						to: firstTestEventEndFriendly,
+						from: today_friendly,
+						to: next_friendly,
 						label: "Test1",
                         desc: "TEST POP!",
 						customClass: "ganttGreen"
 					},
                     {
-                        from: secondTestEventStartFriendly,
-                        to: secondTestEventEndFriendly,
+                        from: today_friendly2,
+                        to: next_friendly2,
                         label: "Test2",
                         desc: "test 2",
                         customClass: "ganttOrange"
                     }]
-				},
-				{
-					name: "NewYearTest",
-					desc: " ",
-					values: [{
-						from: newYearTestStartFriendly,
-						to: newYearTestEndFriendly,
-						label: "New Year Test",
-						desc: "Happy New Year!",
-						customClass: "ganttGreen"
-					}]
-				},
-				{
-					name: "Day Light Savings",
-					desc: " ",
-					values: [{
-						from: dayLightSavingsTestStartFriendly,
-						to: dayLightSavingsTestEndFriendly,
-						label: "Day Light Savings Test",
-						desc: "Spring Forward!",
-						customClass: "ganttGreen"
-					}]
-				}
-				],
+				}],
 				scale: "hours",
 				minScale: "hours",
 				navigate: "scroll",
 				showFractionalHours: true
-				}
-			);
+			});
+
 			$(".gantt").popover({
 				selector: ".bar",
 				title: "I'm a popover",
 				content: "And I'm the content of said popover.",
 				trigger: "hover"
 			});
+
 		});
+
     </script>
 </html>
