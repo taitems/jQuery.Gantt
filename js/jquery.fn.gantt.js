@@ -1,160 +1,202 @@
-/**
- * jQuery Gantt Chart
- *
- * @see http://taitems.github.io/jQuery.Gantt/
- * @license MIT
- */
-/*jshint camelcase:true, freeze:true, jquery:true */
-(function ($, undefined) {
+// jQuery Gantt Chart
+// ==================
+
+// Basic usage:
+
+//      $(".selector").gantt({
+//          source: "ajax/data.json",
+//          scale: "weeks",
+//          minScale: "weeks",
+//          maxScale: "months",
+//          onItemClick: function(data) {
+//              alert("Item clicked - show some details");
+//          },
+//          onAddClick: function(dt, rowId) {
+//              alert("Empty space clicked - add an item!");
+//          },
+//          onRender: function() {
+//              console.log("chart rendered");
+//          }
+//      });
+
+//
+/*jshint shadow:true, unused:false, laxbreak:true, evil:true*/
+/*globals jQuery, alert*/
+(function ($) {
+
     "use strict";
-
-    // custom selector `:findday` used to match on specified day in ms.
-    //
-    // The selector is passed a date in ms and elements are added to the
-    // selection filter if the element date matches, as determined by the
-    // id attribute containing a parsable date in ms.
-    $.extend($.expr[":"], {
-        findday: function (a, i, m) {
-            var cd = new Date(parseInt(m[3], 10));
-            var id = $(a).attr("id") || "";
-            var si = id.indexOf("-") + 1;
-            var ed = new Date(parseInt(id.substring(si, id.length), 10));
-            cd = new Date(cd.getFullYear(), cd.getMonth(), cd.getDate());
-            ed = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate());
-            return cd.getTime() === ed.getTime();
-        }
-    });
-    // custom selector `:findweek` used to match on specified week in ms.
-    $.extend($.expr[":"], {
-        findweek: function (a, i, m) {
-            var cd = new Date(parseInt(m[3], 10));
-            var id = $(a).attr("id") || "";
-            var si = id.indexOf("-") + 1;
-            cd = cd.getFullYear() + "-" + cd.getDayForWeek().getWeekOfYear();
-            var ed = id.substring(si, id.length);
-            return cd === ed;
-        }
-    });
-    // custom selector `:findmonth` used to match on specified month in ms.
-    $.extend($.expr[":"], {
-        findmonth: function (a, i, m) {
-            var cd = new Date(parseInt(m[3], 10));
-            cd = cd.getFullYear() + "-" + cd.getMonth();
-            var id = $(a).attr("id") || "";
-            var si = id.indexOf("-") + 1;
-            var ed = id.substring(si, id.length);
-            return cd === ed;
-        }
-    });
-
-    // Date prototype helpers
-    // ======================
-
-    // `getWeekId` returns a string in the form of 'dh-YYYY-WW', where WW is
-    // the week # for the year.
-    // It is used to add an id to the week divs
-    Date.prototype.getWeekId = function () {
-        var y = this.getFullYear();
-        var w = this.getDayForWeek().getWeekOfYear();
-        var m = this.getMonth();
-        if (m === 11 && w === 1) {
-            y++;
-        }
-        return 'dh-' + y + "-" + w;
-    };
-
-    // `getRepDate` returns the milliseconds since the epoch for a given date
-    // depending on the active scale
-    Date.prototype.getRepDate = function (scale) {
-        switch (scale) {
-        case "hours":
-            return this.getTime();
-        case "weeks":
-            return this.getDayForWeek().getTime();
-        case "months":
-            return new Date(this.getFullYear(), this.getMonth(), 1).getTime();
-        case "days":
-            /* falls through */
-        default:
-            return this.getTime();
-        }
-    };
-
-    // `getDayOfYear` returns the day number for the year
-    Date.prototype.getDayOfYear = function () {
-        var fd = new Date(this.getFullYear(), 0, 0);
-        var sd = new Date(this.getFullYear(), this.getMonth(), this.getDate());
-        return Math.ceil((sd - fd) / 86400000);
-    };
-
-    // `getWeekOfYear` returns the week number for the year
-    Date.prototype.getWeekOfYear = function () {
-        var ys = new Date(this.getFullYear(), 0, 1);
-        var sd = new Date(this.getFullYear(), this.getMonth(), this.getDate());
-        if (ys.getDay() > 3) {
-            ys = new Date(sd.getFullYear(), 0, (7 - ys.getDay()));
-        }
-        var daysCount = sd.getDayOfYear() - ys.getDayOfYear();
-        return Math.ceil(daysCount / 7);
-
-    };
-
-    // `getDayForWeek` returns the Date object for the starting date of
-    // the week # for the year
-    Date.prototype.getDayForWeek = function () {
-        var df = new Date(this.valueOf());
-        df.setDate(df.getDate() - df.getDay());
-        var dt = new Date(this.valueOf());
-        dt.setDate(dt.getDate() + (6 - dt.getDay()));
-        if ((df.getMonth() === dt.getMonth()) || (df.getMonth() !== dt.getMonth() && dt.getDate() >= 4)) {
-            return new Date(dt.setDate(dt.getDate() - 3));
-        } else {
-            return new Date(df.setDate(df.getDate() + 3));
-        }
-    };
-
-    // fixes https://github.com/taitems/jQuery.Gantt/issues/62
-    function ktkGetNextDate(currentDate, scaleStep) {
-        for(var minIncrements = 1;; minIncrements++) {
-            var nextDate = new Date(currentDate);
-            nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
-
-            if (nextDate.getTime() !== currentDate.getTime()) {
-                return nextDate;
-            }
-
-            // If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
-            // => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
-        }
-    }
 
     $.fn.gantt = function (options) {
 
+        var cookieKey = "jquery.fn.gantt";
         var scales = ["hours", "days", "weeks", "months"];
         //Default settings
         var settings = {
             source: [],
-            cookieKey: "jquery.fn.gantt",
             itemsPerPage: 7,
-            dow: ["S", "M", "T", "W", "T", "F", "S"],
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+            dow: ["S", "M", "T", "W", "T", "F", "S"],
+            startPos: new Date(),
             navigate: "buttons",
             scale: "days",
-            scrollToToday: true,
             useCookie: false,
             maxScale: "months",
             minScale: "hours",
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
-            onAddClick: function (dt, rowId) { return; },
-            onRender: $.noop
+            onAddClick: function (data) { return; },
+            onRender: function() { return; },
+            onDataLoadFailed: function(data) { return; },
+            scrollToToday: true
         };
 
-        // read options
-        $.extend(settings, options);
+        /**
+        * Extend options with default values
+        */
+        if (options) {
+            $.extend(settings, options);
+        }
 
         // can't use cookie if don't have `$.cookie`
         settings.useCookie = settings.useCookie && $.isFunction($.cookie);
+
+        // custom selector `:findday` used to match on specified day in ms.
+        //
+        // The selector is passed a date in ms and elements are added to the
+        // selection filter if the element date matches, as determined by the
+        // id attribute containing a parsable date in ms.
+        $.extend($.expr[":"], {
+            findday: function (a, i, m) {
+                var cd = new Date(parseInt(m[3], 10));
+                var id = $(a).attr("id");
+                id = id ? id : "";
+                var si = id.indexOf("-") + 1;
+                var ed = new Date(parseInt(id.substring(si, id.length), 10));
+                cd = new Date(cd.getFullYear(), cd.getMonth(), cd.getDate());
+                ed = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate());
+                return cd.getTime() === ed.getTime();
+            }
+        });
+        // custom selector `:findweek` used to match on specified week in ms.
+        $.extend($.expr[":"], {
+            findweek: function (a, i, m) {
+                var cd = new Date(parseInt(m[3], 10));
+                var id = $(a).attr("id");
+                id = id ? id : "";
+                var si = id.indexOf("-") + 1;
+                cd = cd.getFullYear() + "-" + cd.getDayForWeek().getWeekOfYear();
+                var ed = id.substring(si, id.length);
+                return cd === ed;
+            }
+        });
+        // custom selector `:findmonth` used to match on specified month in ms.
+        $.extend($.expr[":"], {
+            findmonth: function (a, i, m) {
+                var cd = new Date(parseInt(m[3], 10));
+                cd = cd.getFullYear() + "-" + cd.getMonth();
+                var id = $(a).attr("id");
+                id = id ? id : "";
+                var si = id.indexOf("-") + 1;
+                var ed = id.substring(si, id.length);
+                return cd === ed;
+            }
+        });
+
+        // Date prototype helpers
+        // ======================
+
+        // `getWeekId` returns a string in the form of 'dh-YYYY-WW', where WW is
+        // the week # for the year.
+        // It is used to add an id to the week divs
+        Date.prototype.getWeekId = function () {
+            var y = this.getFullYear();
+            var w = this.getDayForWeek().getWeekOfYear();
+            var m = this.getMonth();
+            if (m === 11 && w === 1) {
+                y++;
+            }
+            return 'dh-' + y + "-" + w;
+        };
+
+        // `getRepDate` returns the seconds since the epoch for a given date
+        // depending on the active scale
+        Date.prototype.getRepDate = function () {
+            switch (settings.scale) {
+                case "hours":
+                    return this.getTime();
+                case "weeks":
+                    return this.getDayForWeek().getTime();
+                case "months":
+                    return new Date(this.getFullYear(), this.getMonth(), 1).getTime();
+                default:
+                    return this.getTime();
+            }
+        };
+
+        // `getDayOfYear` returns the day number for the year
+        Date.prototype.getDayOfYear = function () {
+            var fd = new Date(this.getFullYear(), 0, 0);
+            var sd = new Date(this.getFullYear(), this.getMonth(), this.getDate());
+            return Math.ceil((sd - fd) / 86400000);
+        };
+
+        // `getWeekOfYear` returns the week number for the year
+        Date.prototype.getWeekOfYear = function () {
+            var ys = new Date(this.getFullYear(), 0, 1);
+            var sd = new Date(this.getTime());
+            // Find Thursday of this week starting on Monday
+            sd.setDate(sd.getDate() + 4 - (sd.getDay() || 7));
+            return Math.floor(Math.round((sd - ys) / 86400000) / 7) + 1;
+        };
+
+        // `getDaysInMonth` returns the number of days in a month
+        Date.prototype.getDaysInMonth = function () {
+            return 32 - new Date(this.getFullYear(), this.getMonth(), 32).getDate();
+        };
+
+        // `hasWeek` returns `true` if the date resides on a week boundary
+        // **????????????????? Don't know if this is true**
+        Date.prototype.hasWeek = function () {
+            var df = new Date(this.valueOf());
+            df.setDate(df.getDate() - df.getDay());
+            var dt = new Date(this.valueOf());
+            dt.setDate(dt.getDate() + (6 - dt.getDay()));
+
+            if (df.getMonth() === dt.getMonth()) {
+                return true;
+            } else {
+                return (df.getMonth() === this.getMonth() && dt.getDate() < 4) || (df.getMonth() !== this.getMonth() && dt.getDate() >= 4);
+            }
+        };
+
+        // `getDayForWeek` returns the Date object for the starting date of
+        // the week # for the year
+        Date.prototype.getDayForWeek = function () {
+            var df = new Date(this.valueOf());
+            df.setDate(df.getDate() - df.getDay());
+            var dt = new Date(this.valueOf());
+            dt.setDate(dt.getDate() + (6 - dt.getDay()));
+            if ((df.getMonth() === dt.getMonth()) || (df.getMonth() !== dt.getMonth() && dt.getDate() >= 4)) {
+                return new Date(dt.setDate(dt.getDate() - 3));
+            } else {
+                return new Date(df.setDate(df.getDate() + 3));
+            }
+        };
+
+        // fixes https://github.com/taitems/jQuery.Gantt/issues/62
+        function ktkGetNextDate(currentDate, scaleStep) {
+            for(var minIncrements = 1;; minIncrements++) {
+                var nextDate = new Date(currentDate);
+                nextDate.setHours(currentDate.getHours() + scaleStep * minIncrements);
+
+                if (nextDate.getTime() !== currentDate.getTime()) {
+                    return nextDate;
+                }
+
+                // If code reaches here, it's because current didn't really increment (invalid local time) because of daylight-saving adjustments
+                // => retry adding 2, 3, 4 hours, and so on (until nextDate > current)
+            }
+        }
 
         // Grid management
         // ===============
@@ -162,24 +204,19 @@
         // Core object is responsible for navigation and rendering
         var core = {
             // Return the element whose topmost point lies under the given point
-            // Normalizes for old browsers (NOTE: doesn't work when element is outside viewport)
-            //TODO: https://github.com/taitems/jQuery.Gantt/issues/137
-            elementFromPoint: (function(){ // IIFE
-                // version for normal browsers
-                if (document.compatMode === "CSS1Compat") {
-                    return function (x, y) {
-                        x -= window.pageXOffset;
-                        y -= window.pageYOffset;
-                        return document.elementFromPoint(x, y);
-                    };
-                }
-                // version for older browsers
-                return function (x, y) {
+            // Normalizes for IE
+            elementFromPoint: function (x, y) {
+
+                if (!$.support.boxModel) {
                     x -= $(document).scrollLeft();
                     y -= $(document).scrollTop();
-                    return document.elementFromPoint(x, y);
-                };
-            })(),
+                } else {
+                    x -= window.pageXOffset;
+                    y -= window.pageYOffset;
+                }
+
+                return document.elementFromPoint(x, y);
+            },
 
             // **Create the chart**
             create: function (element) {
@@ -199,18 +236,24 @@
 
             // **Setup the initial view**
             // Here we calculate the number of rows, pages and visible start
-            // and end dates once the data are ready
+            // and end dates once the data is ready
             init: function (element) {
-                element.rowsNum = element.data.length;
-                element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
-                element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
+                try {
+                    element.rowsNum = element.data.length;
+                    element.pageCount = Math.ceil(element.rowsNum / settings.itemsPerPage);
+                    element.rowsOnLastPage = element.rowsNum - (Math.floor(element.rowsNum / settings.itemsPerPage) * settings.itemsPerPage);
 
-                element.dateStart = tools.getMinDate(element);
-                element.dateEnd = tools.getMaxDate(element);
+                    element.dateStart = tools.getMinDate(element);
+                    element.dateEnd = tools.getMaxDate(element);
 
 
-                /* core.render(element); */
-                core.waitToggle(element, true, function () { core.render(element); });
+                    /* core.render(element); */
+                    core.waitToggle(element, true, function () { core.render(element); });
+                }
+                catch(e) {
+                    if ( element.data === null || (typeof element.data === 'object' && element.data.length === 0 ) )
+                        settings.onDataLoadFailed($(this).data("dataObj"));
+                }
             },
 
             // **Render the grid**
@@ -228,7 +271,7 @@
 
                 element.gantt = $('<div class="fn-gantt" />').append(content);
 
-                $(element).empty().append(element.gantt);
+                $(element).html(element.gantt);
 
                 element.scrollNavigation.panelMargin = parseInt($dataPanel.css("margin-left").replace("px", ""), 10);
                 element.scrollNavigation.panelMaxPos = ($dataPanel.width() - $rightPanel.width());
@@ -240,7 +283,7 @@
 
                 // Set a cookie to record current position in the view
                 if (settings.useCookie) {
-                    var sc = $.cookie(settings.cookieKey + "ScrollPos");
+                    var sc = $.cookie(this.cookieKey + "ScrollPos");
                     if (sc) {
                         element.hPosition = sc;
                     }
@@ -256,13 +299,17 @@
                         if (element.scaleOldWidth) {
                             mLeft = ($dataPanel.width() - $rightPanel.width());
                             hPos = mLeft * element.hPosition / element.scaleOldWidth;
-                            element.hPosition = hPos > 0 ? 0 : hPos;
+                            hPos = hPos > 0 ? 0 : hPos;
+                            $dataPanel.css({ "margin-left": hPos + "px" });
+                            element.scrollNavigation.panelMargin = hPos;
+                            element.hPosition = hPos;
                             element.scaleOldWidth = null;
+                        } else {
+                            $dataPanel.css({ "margin-left": element.hPosition + "px" });
+                            element.scrollNavigation.panelMargin = element.hPosition;
                         }
-                        $dataPanel.css({ "margin-left": element.hPosition });
-                        element.scrollNavigation.panelMargin = element.hPosition;
+                        core.repositionLabel(element);
                     }
-                    core.repositionLabel(element);
                 }
 
                 $dataPanel.css({ height: $leftPanel.height() });
@@ -275,19 +322,18 @@
                 /* Left panel */
                 var ganttLeftPanel = $('<div class="leftPanel"/>')
                     .append($('<div class="row spacer"/>')
-                    .css("height", tools.getCellSize() * element.headerRows)
+                    .css("height", tools.getCellSize() * element.headerRows + "px")
                     .css("width", "100%"));
 
                 var entries = [];
                 $.each(element.data, function (i, entry) {
                     if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-                        var dataId = ('id' in entry) ? '" data-id="' + entry.id : '';
-                        entries.push('<div class="row name row' + i + (entry.desc ? '' : (' fn-wide '+dataId)) + '" id="rowheader' + i + '" data-offset="' + i % settings.itemsPerPage * tools.getCellSize() + '">');
+                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + i % settings.itemsPerPage * tools.getCellSize() + '">');
                         entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + (entry.name || '') + '</span>');
                         entries.push('</div>');
 
                         if (entry.desc) {
-                            entries.push('<div class="row desc row' + i + ' " id="RowdId_' + i + dataId + '">');
+                            entries.push('<div class="row desc row' + i + ' " id="RowdId_' + i + '" data-id="' + entry.id + '">');
                             entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.desc + '</span>');
                             entries.push('</div>');
                         }
@@ -303,10 +349,15 @@
                 var dataPanel = $('<div class="dataPanel" style="width: ' + width + 'px;"/>');
 
                 // Handle mousewheel events for scrolling the data panel
-                var wheel = 'onwheel' in element ? 'wheel' : document.onmousewheel !== undefined ? 'mousewheel' : 'DOMMouseScroll';
-                $(element).on(wheel, function (e) { core.wheelScroll(element, e); });
+                var mousewheelevt = (/Firefox/i.test(navigator.userAgent)) ? "DOMMouseScroll" : "mousewheel";
+                if (document.attachEvent) {
+                    element.attachEvent("on" + mousewheelevt, function (e) { core.wheelScroll(element, e); });
+                } else if (document.addEventListener) {
+                    element.addEventListener(mousewheelevt, function (e) { core.wheelScroll(element, e); }, false);
+                }
 
-                // Handle click events and dispatch to registered `onAddClick` function
+                // Handle click events and dispatch to registered `onAddClick`
+                // function
                 dataPanel.click(function (e) {
 
                     e.stopPropagation();
@@ -314,19 +365,21 @@
                     var leftpanel = $(element).find(".fn-gantt .leftPanel");
                     var datapanel = $(element).find(".fn-gantt .dataPanel");
                     switch (settings.scale) {
-                    case "months":
-                        corrY = tools.getCellSize();
-                        break;
-                    case "hours":
-                        corrY = tools.getCellSize() * 4;
-                        break;
-                    case "days":
-                        corrY = tools.getCellSize() * 3;
-                        break;
-                    case "weeks":
-                        /* falls through */
-                    default:
-                        corrY = tools.getCellSize() * 2;
+                        case "weeks":
+                            corrY = tools.getCellSize() * 2;
+                            break;
+                        case "months":
+                            corrY = tools.getCellSize();
+                            break;
+                        case "hours":
+                            corrY = tools.getCellSize() * 4;
+                            break;
+                        case "days":
+                            corrY = tools.getCellSize() * 3;
+                            break;
+                        default:
+                            corrY = tools.getCellSize() * 2;
+                            break;
                     }
 
                     /* Adjust, so get middle of elm
@@ -342,16 +395,16 @@
                         col = $(col);
                     }
 
-                    var dt = col.data("repdate");
+                    var dt = col.attr("repdate");
                     // Find row where click occurred
                     var row = core.elementFromPoint(leftpanel.offset().left + leftpanel.width() - 10, e.pageY);
-                    // Was the label clicked directly?
+                    // Was the lable clicked directly?
                     if (row.className.indexOf("fn-label") === 0) {
                         row = $(row.parentNode);
                     } else {
                         row = $(row);
                     }
-                    var rowId = row.data('id');
+                    var rowId = row.data().id;
 
                     // Dispatch user registered function with the DateTime in ms
                     // and the id if the clicked object is a row
@@ -360,357 +413,349 @@
                 return dataPanel;
             },
 
-            // Creates and return the right panel containing the year/week/day header
+            // Creates and return the right panel containing the year/week/day
+            // header
             rightPanel: function (element, leftPanel /* <- never used? */) {
+
                 var range = null;
                 // Days of the week have a class of one of
                 // `sn` (Sunday), `sa` (Saturday), or `wd` (Weekday)
                 var dowClass = ["sn", "wd", "wd", "wd", "wd", "wd", "sa"];
-                //unused: was someone planning to allow styles to stretch to the bottom of the chart?
+                //TODO: was someone planning to allow styles to stretch to the bottom of the chart?
                 //var gridDowClass = [" sn", "", "", "", "", "", " sa"];
 
-                var yearArr = [];
+                var yearArr = ['<div class="row"/>'];
                 var daysInYear = 0;
 
-                var monthArr = [];
+                var monthArr = ['<div class="row"/>'];
                 var daysInMonth = 0;
 
                 var dayArr = [];
+
                 var hoursInDay = 0;
 
                 var dowArr = [];
+
                 var horArr = [];
 
-                var today = new Date();
-                today.setHours(0, 0, 0, 0);
 
-                // reused variables
-                var i, len;
-                var year, month, day;
-                var rday, dayClass;
-                var dataPanel;
+                var today = new Date();
+                today = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+                var holidays = settings.holidays ? settings.holidays.join() : '';
 
                 // Setup the headings based on the chosen `settings.scale`
                 switch (settings.scale) {
-                // **Hours**
-                case "hours":
-                    range = tools.parseTimeRange(element.dateStart, element.dateEnd, element.scaleStep);
+                    // **Hours**
+                    case "hours":
 
-                    year = range[0].getFullYear();
-                    month = range[0].getMonth();
-                    day = range[0];
+                        range = tools.parseTimeRange(element.dateStart, element.dateEnd, element.scaleStep);
 
-                    for (i = 0, len = range.length; i < len; i++) {
-                        rday = range[i];
+                        var year = range[0].getFullYear();
+                        var month = range[0].getMonth();
+                        var day = range[0];
 
-                        // Fill years
-                        var rfy = rday.getFullYear();
-                        if (rfy !== year) {
-                            yearArr.push(
-                                '<div class="row header year" style="width: ' +
-                                tools.getCellSize() * daysInYear +
-                                'px;"><div class="fn-label">' +
-                                year +
-                                '</div></div>');
+                        for (var i = 0, len = range.length; i < len; i++) {
+                            var rday = range[i];
 
-                            year = rfy;
-                            daysInYear = 0;
+                            // Fill years
+                            var rfy = rday.getFullYear();
+                            if (rfy !== year) {
+                                yearArr.push(
+                                    ('<div class="row header year" style="width: '
+                                        + tools.getCellSize() * daysInYear
+                                        + 'px;"><div class="fn-label">'
+                                        + year
+                                        + '</div></div>'));
+
+                                year = rfy;
+                                daysInYear = 0;
+                            }
+                            daysInYear++;
+
+
+                            // Fill months
+                            var rm = rday.getMonth();
+                            if (rm !== month) {
+                                monthArr.push(
+                                    ('<div class="row header month" style="width: '
+                                    + tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
+                                    + settings.months[month]
+                                    + '</div></div>'));
+
+                                month = rm;
+                                daysInMonth = 0;
+                            }
+                            daysInMonth++;
+
+
+                            // Fill days & hours
+
+                            var rgetDay = rday.getDay();
+                            var getDay = day.getDay();
+                            var day_class = dowClass[rgetDay];
+                            var getTime = day.getTime();
+                            if (holidays.indexOf((new Date(rday.getFullYear(), rday.getMonth(), rday.getDate())).getTime()) > -1) {
+                                day_class = "holiday";
+                            }
+                            if (rgetDay !== getDay) {
+
+                                var day_class2 = (today - day === 0) ? ' today' : (holidays.indexOf(getTime) > -1) ? "holiday" : dowClass[getDay];
+
+                                dayArr.push('<div class="row date dh ' + day_class2 + '" '
+                                        + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
+                                        + ' <div class="fn-label">' + day.getDate() + '</div></div>');
+                                dowArr.push('<div class="row day ' + day_class2 + '" '
+                                        + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
+                                        + ' <div class="fn-label">' + settings.dow[getDay] + '</div></div>');
+
+                                day = rday;
+                                hoursInDay = 0;
+                            }
+                            hoursInDay++;
+
+                            horArr.push('<div class="row day dh '
+                                    + day_class
+                                    + '" id="dh-'
+                                    + rday.getTime()
+                                    + '"  offset="' + i * tools.getCellSize() + '"  repdate="' + rday.getRepDate() + '"><div class="fn-label">'
+                                    + rday.getHours()
+                                    + '</div></div>');
                         }
-                        daysInYear++;
+                        // Last year
+                       yearArr.push(
+                            '<div class="row header year" style="width: '
+                            + tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">'
+                            + year
+                            + '</div></div>');
 
+                        // Last month
+                        monthArr.push(
+                            '<div class="row header month" style="width: '
+                            + tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
+                            + settings.months[month]
+                            + '</div></div>');
 
-                        // Fill months
-                        var rm = rday.getMonth();
-                        if (rm !== month) {
-                            monthArr.push(
-                                '<div class="row header month" style="width: ' +
-                                tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">' +
-                                settings.months[month] +
-                                '</div></div>');
+                        var day_class = dowClass[day.getDay()];
 
-                            month = rm;
-                            daysInMonth = 0;
-                        }
-                        daysInMonth++;
-
-
-                        // Fill days & hours
-
-                        var rgetDay = rday.getDay();
-                        var getDay = day.getDay();
-                        dayClass = dowClass[rgetDay];
-                        if (tools.isHoliday(rday)) {
-                            dayClass = "holiday";
-                        }
-                        if (rgetDay !== getDay) {
-                            var dayClass2 = (today - day === 0) ? "today" : tools.isHoliday( day.getTime() ) ? "holiday" : dowClass[getDay];
-
-                            dayArr.push(
-                                '<div class="row date ' + dayClass2 + '" ' +
-                                ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> ' +
-                                ' <div class="fn-label">' + day.getDate() + '</div></div>');
-                            dowArr.push(
-                                '<div class="row day ' + dayClass2 + '" ' +
-                                ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> ' +
-                                ' <div class="fn-label">' + settings.dow[getDay] + '</div></div>');
-
-                            day = rday;
-                            hoursInDay = 0;
-                        }
-                        hoursInDay++;
-
-                        horArr.push(
-                            '<div class="row day ' +
-                            dayClass +
-                            '" id="dh-' +
-                            rday.getTime() +
-                            '"  data-offset="' + i * tools.getCellSize() + '" data-repdate="' + rday.getRepDate(settings.scale) + '"><div class="fn-label">' +
-                            rday.getHours() +
-                            '</div></div>');
-                    }
-
-
-                    // Last year
-                    yearArr.push(
-                        '<div class="row header year" style="width: ' +
-                        tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">' +
-                        year +
-                        '</div></div>');
-
-                    // Last month
-                    monthArr.push(
-                        '<div class="row header month" style="width: ' +
-                        tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">' +
-                        settings.months[month] +
-                        '</div></div>');
-
-                    dayClass = dowClass[day.getDay()];
-
-                    if ( tools.isHoliday(day) ) {
-                        dayClass = "holiday";
-                    }
-
-                    dayArr.push(
-                        '<div class="row date ' + dayClass + '" ' +
-                        ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> ' +
-                        ' <div class="fn-label">' + day.getDate() + '</div></div>');
-
-                    dowArr.push(
-                        '<div class="row day ' + dayClass + '" ' +
-                        ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> ' +
-                        ' <div class="fn-label">' + settings.dow[day.getDay()] + '</div></div>');
-
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
-
-
-                    // Append panel elements
-                    dataPanel.append(
-                        $('<div class="row header"></div>').html(yearArr.join("")),
-                        $('<div class="row header"></div>').html(monthArr.join("")),
-                        $('<div class="row header"></div>').html(dayArr.join("")),
-                        $('<div class="row header"></div>').html(dowArr.join("")),
-                        $('<div class="row header"></div>').html(horArr.join(""))
-                    );
-
-                    break;
-
-                // **Weeks**
-                case "weeks":
-                    range = tools.parseWeeksRange(element.dateStart, element.dateEnd);
-                    yearArr = [];
-                    monthArr = [];
-                    year = range[0].getFullYear();
-                    month = range[0].getMonth();
-                    day = range[0];
-
-                    for (i = 0, len = range.length; i < len; i++) {
-                        rday = range[i];
-
-                        // Fill years
-                        if (rday.getFullYear() !== year) {
-                            yearArr.push(
-                                '<div class="row header year" style="width: ' +
-                                tools.getCellSize() * daysInYear +
-                                'px;"><div class="fn-label">' +
-                                year +
-                                '</div></div>');
-                            year = rday.getFullYear();
-                            daysInYear = 0;
-                        }
-                        daysInYear++;
-
-                        // Fill months
-                        if (rday.getMonth() !== month) {
-                            monthArr.push(
-                                '<div class="row header month" style="width:' +
-                                tools.getCellSize() * daysInMonth +
-                                'px;"><div class="fn-label">' +
-                                settings.months[month] +
-                                '</div></div>');
-                            month = rday.getMonth();
-                            daysInMonth = 0;
-                        }
-                        daysInMonth++;
-
-                        // Fill weeks
-                        dayArr.push(
-                            '<div class="row day wd" ' +
-                            ' id="' + rday.getWeekId() + '" data-offset="' + i * tools.getCellSize() + '" data-repdate="' + rday.getRepDate(settings.scale) + '"> ' +
-                            ' <div class="fn-label">' + rday.getWeekOfYear() + '</div></div>');
-                    }
-
-
-                    // Last year
-                    yearArr.push(
-                        '<div class="row header year" style="width: ' +
-                        tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">' +
-                        year +
-                        '</div></div>');
-
-                    // Last month
-                    monthArr.push(
-                        '<div class="row header month" style="width: ' +
-                        tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">' +
-                        settings.months[month] +
-                        '</div></div>');
-
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
-
-                    dataPanel.append(yearArr.join("") + monthArr.join("") + dayArr.join("") + dowArr.join(""));
-
-                    break;
-
-                // **Months**
-                case 'months':
-                    range = tools.parseMonthsRange(element.dateStart, element.dateEnd);
-
-                    year = range[0].getFullYear();
-                    month = range[0].getMonth();
-                    day = range[0];
-
-                    for (i = 0, len = range.length; i < len; i++) {
-                        rday = range[i];
-
-                        // Fill years
-                        if (rday.getFullYear() !== year) {
-                            yearArr.push(
-                                '<div class="row header year" style="width: ' +
-                                tools.getCellSize() * daysInYear +
-                                'px;"><div class="fn-label">' +
-                                year +
-                                '</div></div>');
-                            year = rday.getFullYear();
-                            daysInYear = 0;
-                        }
-                        daysInYear++;
-                        monthArr.push('<div class="row day wd" id="dh-' + tools.genId(rday.getTime()) + '" data-offset="' + i * tools.getCellSize() + '" data-repdate="' + rday.getRepDate(settings.scale) + '">' + (1 + rday.getMonth()) + '</div>');
-                    }
-
-
-                    // Last year
-                    yearArr.push(
-                        '<div class="row header year" style="width: ' +
-                        tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">' +
-                        year +
-                        '</div></div>');
-
-                    // Last month
-                    monthArr.push(
-                        '<div class="row header month" style="width: ' +
-                        tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">' +
-                        settings.months[month] +
-                        '</div></div>');
-
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
-
-                    // Append panel elements
-                    dataPanel.append(
-                        $('<div class="row header"></div>').html(yearArr.join("")),
-                        $('<div class="row header"></div>').html(monthArr.join("")),
-                        $('<div class="row header"></div>').html(dayArr.join("")),
-                        $('<div class="row header"></div>').html(dowArr.join(""))
-                    );
-
-                    break;
-
-                // **Days (default)**
-                default:
-                    range = tools.parseDateRange(element.dateStart, element.dateEnd);
-
-                    var dateBefore = ktkGetNextDate(range[0], -1);
-                    year = dateBefore.getFullYear();
-                    month = dateBefore.getMonth();
-                    //day = dateBefore; // <- never used?
-
-                    for (i = 0, len = range.length; i < len; i++) {
-                        rday = range[i];
-
-                        // Fill years
-                        if (rday.getFullYear() !== year) {
-                            yearArr.push(
-                                '<div class="row header year" style="width:' +
-                                tools.getCellSize() * daysInYear +
-                                'px;"><div class="fn-label">' +
-                                year +
-                                '</div></div>');
-                            year = rday.getFullYear();
-                            daysInYear = 0;
-                        }
-                        daysInYear++;
-
-                        // Fill months
-                        if (rday.getMonth() !== month) {
-                            monthArr.push(
-                                '<div class="row header month" style="width:' +
-                                tools.getCellSize() * daysInMonth +
-                                'px;"><div class="fn-label">' +
-                                settings.months[month] +
-                                '</div></div>');
-                            month = rday.getMonth();
-                            daysInMonth = 0;
-                        }
-                        daysInMonth++;
-
-                        day = rday.getDay();
-                        dayClass = dowClass[day];
-                        if ( tools.isHoliday(rday) ) {
-                            dayClass = "holiday";
+                        if (holidays.indexOf((new Date(day.getFullYear(), day.getMonth(), day.getDate())).getTime()) > -1) {
+                            day_class = "holiday";
                         }
 
-                        dayArr.push(
-                            '<div class="row date ' + dayClass + '" ' +
-                            ' id="dh-' + tools.genId(rday.getTime()) + '" data-offset="' + i * tools.getCellSize() + '" data-repdate="' + rday.getRepDate(settings.scale) + '"> ' +
-                            ' <div class="fn-label">' + rday.getDate() + '</div></div>');
-                        dowArr.push(
-                            '<div class="row day ' + dayClass + '" ' +
-                            ' id="dw-' + tools.genId(rday.getTime()) + '" data-repdate="' + rday.getRepDate(settings.scale) + '"> ' +
-                            ' <div class="fn-label">' + settings.dow[day] + '</div></div>');
-                    } //for
+                        dayArr.push('<div class="row date dh" ' + day_class + '" '
+                                + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
+                                + ' <div class="fn-label">' + day.getDate() + '</div></div>');
 
-                    // Last year
-                    yearArr.push(
-                        '<div class="row header year" style="width: ' +
-                        tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">' +
-                        year +
-                        '</div></div>');
+                        dowArr.push('<div class="row day ' + day_class + '" '
+                                + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
+                                + ' <div class="fn-label">' + settings.dow[day.getDay()] + '</div></div>');
 
-                    // Last month
-                    monthArr.push(
-                        '<div class="row header month" style="width: ' +
-                        tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">' +
-                        settings.months[month] +
-                        '</div></div>');
-
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+                        var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
 
 
-                    // Append panel elements
-                    dataPanel.append(
-                        $('<div class="row header"></div>').html(yearArr.join("")),
-                        $('<div class="row header"></div>').html(monthArr.join("")),
-                        $('<div class="row header"></div>').html(dayArr.join("")),
-                        $('<div class="row header"></div>').html(dowArr.join(""))
-                    );
+                        // Append panel elements
+                        dataPanel.append(yearArr.join(""));
+                        dataPanel.append(monthArr.join(""));
+                        dataPanel.append($('<div class="row"/>').html(dayArr.join("")));
+                        dataPanel.append($('<div class="row"/>').html(dowArr.join("")));
+                        dataPanel.append($('<div class="row"/>').html(horArr.join("")));
+
+                        break;
+
+                    // **Weeks**
+                    case "weeks":
+                        range = tools.parseWeeksRange(element.dateStart, element.dateEnd);
+                        yearArr = ['<div class="row"/>'];
+                        monthArr = ['<div class="row"/>'];
+                        var year = range[0].getFullYear();
+                        var month = range[0].getMonth();
+                        var day = range[0];
+
+                        for (var i = 0, len = range.length; i < len; i++) {
+                            var rday = range[i];
+
+                            // Fill years
+                            if (rday.getFullYear() !== year) {
+                                yearArr.push(
+                                    ('<div class="row header year" style="width: '
+                                        + tools.getCellSize() * daysInYear
+                                        + 'px;"><div class="fn-label">'
+                                        + year
+                                        + '</div></div>'));
+                                year = rday.getFullYear();
+                                daysInYear = 0;
+                            }
+                            daysInYear++;
+
+                            // Fill months
+                            if (rday.getMonth() !== month) {
+                                monthArr.push(
+                                    ('<div class="row header month" style="width:'
+                                       + tools.getCellSize() * daysInMonth
+                                       + 'px;"><div class="fn-label">'
+                                       + settings.months[month]
+                                       + '</div></div>'));
+                                month = rday.getMonth();
+                                daysInMonth = 0;
+                            }
+                            daysInMonth++;
+
+                            // Fill weeks
+                            dayArr.push('<div class="row day wd" '
+                                    + ' id="' + rday.getWeekId() + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '"> '
+                                    + ' <div class="fn-label">' + rday.getWeekOfYear() + '</div></div>');
+                        }
+
+
+                        // Last year
+                        yearArr.push(
+                            '<div class="row header year" style="width: '
+                            + tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">'
+                            + year
+                            + '</div></div>');
+
+                        // Last month
+                        monthArr.push(
+                            '<div class="row header month" style="width: '
+                            + tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
+                            + settings.months[month]
+                            + '</div></div>');
+
+                        var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+
+                        dataPanel.append(yearArr.join("") + monthArr.join("") + dayArr.join("") + (dowArr.join("")));
+
+                        break;
+
+                    // **Months**
+                    case 'months':
+                        range = tools.parseMonthsRange(element.dateStart, element.dateEnd);
+
+                        var year = range[0].getFullYear();
+                        var month = range[0].getMonth();
+                        var day = range[0];
+
+                        for (var i = 0, len = range.length; i < len; i++) {
+                            var rday = range[i];
+
+                            // Fill years
+                            if (rday.getFullYear() !== year) {
+                                yearArr.push(
+                                    ('<div class="row header year" style="width: '
+                                        + tools.getCellSize() * daysInYear
+                                        + 'px;"><div class="fn-label">'
+                                        + year
+                                        + '</div></div>'));
+                                year = rday.getFullYear();
+                                daysInYear = 0;
+                            }
+                            daysInYear++;
+                            monthArr.push('<div class="row day wd dh" id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '">' + (1 + rday.getMonth()) + '</div>');
+                        }
+
+
+                        // Last year
+                        yearArr.push(
+                            '<div class="row header year" style="width: '
+                            + tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">'
+                            + year
+                            + '</div></div>');
+
+                        // Last month
+                        monthArr.push(
+                            '<div class="row header month" style="width: '
+                            + tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
+                            + settings.months[month]
+                            + '</div></div>');
+
+                        var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+
+                        // Append panel elements
+                        dataPanel.append(yearArr.join(""));
+                        dataPanel.append(monthArr.join(""));
+                        dataPanel.append($('<div class="row"/>').html(dayArr.join("")));
+                        dataPanel.append($('<div class="row"/>').html(dowArr.join("")));
+
+                        break;
+
+                    // **Days (default)**
+                    default:
+                        range = tools.parseDateRange(element.dateStart, element.dateEnd);
+
+                        var dateBefore = ktkGetNextDate(range[0], -1);
+                        var year = dateBefore.getFullYear();
+                        var month = dateBefore.getMonth();
+                        var day = dateBefore; // <- never used?
+
+                        for (var i = 0, len = range.length; i < len; i++) {
+                            var rday = range[i];
+
+                            // Fill years
+                            if (rday.getFullYear() !== year) {
+                                yearArr.push(
+                                    ('<div class="row header year" style="width:'
+                                        + tools.getCellSize() * daysInYear
+                                        + 'px;"><div class="fn-label">'
+                                        + year
+                                        + '</div></div>'));
+                                year = rday.getFullYear();
+                                daysInYear = 0;
+                            }
+                            daysInYear++;
+
+
+                            // Fill months
+                            if (rday.getMonth() !== month) {
+                                monthArr.push(
+                                    ('<div class="row header month" style="width:'
+                                       + tools.getCellSize() * daysInMonth
+                                       + 'px;"><div class="fn-label">'
+                                       + settings.months[month]
+                                       + '</div></div>'));
+                                month = rday.getMonth();
+                                daysInMonth = 0;
+                            }
+                            daysInMonth++;
+
+                            var getDay = rday.getDay();
+                            var day_class = dowClass[getDay];
+                            if (holidays.indexOf((new Date(rday.getFullYear(), rday.getMonth(), rday.getDate())).getTime()) > -1) {
+                                day_class = "holiday";
+                            }
+
+                            dayArr.push('<div class="row date ' + day_class + '" '
+                                    + ' id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.getRepDate() + '"> '
+                                    + ' <div class="fn-label">' + rday.getDate() + '</div></div>');
+                            dowArr.push('<div class="row day ' + day_class + '" '
+                                    + ' id="dw-' + tools.genId(rday.getTime()) + '"  repdate="' + rday.getRepDate() + '"> '
+                                    + ' <div class="fn-label">' + settings.dow[getDay] + '</div></div>');
+                        } //for
+
+
+                        // Last year
+                        yearArr.push(
+                            '<div class="row header year" style="width: '
+                            + tools.getCellSize() * daysInYear + 'px;"><div class="fn-label">'
+                            + year
+                            + '</div></div>');
+
+                        // Last month
+                        monthArr.push(
+                            '<div class="row header month" style="width: '
+                            + tools.getCellSize() * daysInMonth + 'px"><div class="fn-label">'
+                            + settings.months[month]
+                            + '</div></div>');
+
+                        var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+
+
+                        // Append panel elements
+
+                        dataPanel.append(yearArr.join(""));
+                        dataPanel.append(monthArr.join(""));
+                        dataPanel.append($('<div class="row" style="margin-left: 0;" />').html(dayArr.join("")));
+                        dataPanel.append($('<div class="row" style="margin-left: 0;" />').html(dowArr.join("")));
+
+                        break;
                 }
 
                 return $('<div class="rightPanel"></div>').append(dataPanel);
@@ -889,39 +934,39 @@
                                 core.zoomInOut(element, 1);
                             }));
                 }
-                return $('<div class="bottom"></div>').append(ganttNavigate);
+                return $('<div class="bottom"/>').append(ganttNavigate);
             },
 
             // **Progress Bar**
-            // Return an element representing a progress of position within the entire chart
-            createProgressBar: function (days, label, desc, classNames, dataObj) {
-                label = label || "";
+            // Return an element representing a progress of position within
+            // the entire chart
+            createProgressBar: function (days, cls, desc, label, dataObj) {
                 var cellWidth = tools.getCellSize();
                 var barMarg = tools.getProgressBarMargin() || 0;
+                var eventWidth = (((cellWidth * days) - barMarg)) + 2;
                 var bar = $('<div class="bar"><div class="fn-label">' + label + '</div></div>')
+                        .addClass(cls)
                         .css({
-                            width: ((cellWidth * days) - barMarg) + 2
+                            width: eventWidth
                         })
                         .data("dataObj", dataObj);
+
                 if (desc) {
                     bar
-                      .mouseenter(function (e) {
+                      .mouseover(function (e) {
                           var hint = $('<div class="fn-gantt-hint" />').html(desc);
                           $("body").append(hint);
                           hint.css("left", e.pageX);
                           hint.css("top", e.pageY);
                           hint.show();
                       })
-                      .mouseleave(function () {
+                      .mouseout(function () {
                           $(".fn-gantt-hint").remove();
                       })
                       .mousemove(function (e) {
                           $(".fn-gantt-hint").css("left", e.pageX);
                           $(".fn-gantt-hint").css("top", e.pageY + 15);
                       });
-                }
-                if (classNames) {
-                    bar.addClass(classNames);
                 }
                 bar.click(function (e) {
                     e.stopPropagation();
@@ -933,20 +978,20 @@
             // Remove the `wd` (weekday) class and add `today` class to the
             // current day/week/month (depending on the current scale)
             markNow: function (element) {
-                var cd = new Date().setHours(0, 0, 0, 0);
                 switch (settings.scale) {
-                case "weeks":
-                    $(element).find(':findweek("' + cd + '")').removeClass('wd').addClass('today');
-                    break;
-                case "months":
-                    $(element).find(':findmonth("' + new Date().getTime() + '")').removeClass('wd').addClass('today');
-                    break;
-                case "days":
-                    /* falls through */
-                case "hours":
-                    /* falls through */
-                default:
-                    $(element).find(':findday("' + cd + '")').removeClass('wd').addClass('today');
+                    case "weeks":
+                        var cd = Date.parse(new Date());
+                        cd = (Math.floor(cd / 36400000) * 36400000);
+                        $(element).find(':findweek("' + cd + '")').removeClass('wd').addClass('today');
+                        break;
+                    case "months":
+                        $(element).find(':findmonth("' + new Date().getTime() + '")').removeClass('wd').addClass('today');
+                        break;
+                    default:
+                        var cd = Date.parse(new Date());
+                        cd = (Math.floor(cd / 36400000) * 36400000);
+                        $(element).find(':findday("' + cd + '")').removeClass('wd').addClass('today');
+                        break;
                 }
             },
 
@@ -966,120 +1011,187 @@
                         return "";
                     }
                 };
-                // Loop through the values of each data element and set a row
+				var darkerColor = function(colStr) {
+					try {
+						colStr = colStr.replace('rgb(','').replace(')','');
+						var rgbArr = colStr.split(',');
+						var R = parseInt(rgbArr[0]);
+						var G = parseInt(rgbArr[1]);
+						var B = parseInt(rgbArr[2]);
+						R = R-Math.round(parseInt(R)/7);
+						G = G-Math.round(parseInt(G)/7);
+						B = B-Math.round(parseInt(B)/7);
+						return 'rgb('+R+', '+G+', '+B+')';
+					} catch (err) {
+						return '';
+					}
+				};
                 $.each(element.data, function (i, entry) {
                     if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
 
                         $.each(entry.values, function (j, day) {
-                            var _bar;
-                            var from, to, cFrom, cTo, dFrom, dTo, dl;
-                            var topEl, top;
+                            var _bar = null;
+
                             switch (settings.scale) {
-                            // **Hourly data**
-                            case "hours":
-                                dFrom = tools.genId(tools.dateDeserialize(day.from).getTime(), element.scaleStep);
-                                from = $(element).find('#dh-' + dFrom);
-                                dTo = tools.genId(tools.dateDeserialize(day.to).getTime(), element.scaleStep);
-                                to = $(element).find('#dh-' + dTo);
-                                cFrom = from.data("offset");
-                                cTo = to.data("offset");
-                                dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
+                                // **Hourly data**
+                                case "hours":
+                                    // In fractional hour aware charts, this determines the pixel delta of d_from and d_to relative to the hour tick-mark
+                                    var pixelOffsetFactor = tools.getCellSize() / (3600000.0*element.scaleStep);
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
+                                    var fromDateInMs = tools.dateDeserialize(day.from).getTime();
+                                    var toDateInMs = tools.dateDeserialize(day.to).getTime();
 
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 5 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+                                    // dFrom/To: This is the truncated timestamp.
+                                    //     Truncated meaning it matches up with the beginning timestamp of the appropriate block (hour, hours, day...)
+                                    // dFromDelta: this is the delta between the actual time stamp and the truncated one (dFrom/To)
+                                    //     multiplied by the pixelOffset value
+                                    // from/to: The time display Div that this timestamp needs to be lined up with.
+                                    //     It does this by matching up our dFrom TS to the id of the Div
+                                    var dFrom = tools.genId(fromDateInMs, element.scaleStep);
+                                    var dFromDelta = (fromDateInMs - dFrom) * pixelOffsetFactor;
+                                    var from = $(element).find('#dh-' + dFrom);
 
-                                datapanel.append(_bar);
-                                break;
+                                    var dTo = tools.genId(toDateInMs, element.scaleStep);
+                                    var dToDelta = (toDateInMs - dTo) * pixelOffsetFactor;
+                                    var to = $(element).find('#dh-' + dTo);
 
-                            // **Weekly data**
-                            case "weeks":
-                                dFrom = tools.dateDeserialize(day.from);
-                                dTo = tools.dateDeserialize(day.to);
+                                    console.log("From: " + fromDateInMs + ", To: " + toDateInMs);
 
-                                if (dFrom.getDate() <= 3 && dFrom.getMonth() === 0) {
-                                    dFrom.setDate(dFrom.getDate() + 4);
-                                }
+                                    // cFrom/To: gets the offset of the time display Div and adds the dFrom/To delta to it
+                                    // dl: gets the number of "Blocks" to that need to be filled for this event. This will be passed to createProgressBar to
+                                    //      determine the width this event element
+                                    var cFrom = parseInt(from.attr("offset")) + dFromDelta;
+                                    var cTo = parseInt(to.attr("offset")) + dToDelta;
+                                    var dl = (cTo - cFrom) / tools.getCellSize();
 
-                                if (dFrom.getDate() <= 3 && dFrom.getMonth() === 0) {
-                                    dFrom.setDate(dFrom.getDate() + 4);
-                                }
+                                    // Calls the function that actually creates the HTML element for this event
+                                    _bar = core.createProgressBar(
+                                                dl,
+                                                day.customClass ? day.customClass : "",
+                                                day.desc ? day.desc : "",
+                                                day.label ? day.label : "",
+                                                day.dataObj ? day.dataObj : null
+                                            );
 
-                                if (dTo.getDate() <= 3 && dTo.getMonth() === 0) {
-                                    dTo.setDate(dTo.getDate() + 4);
-                                }
+                                    // find row
+                                    var topEl = $(element).find("#rowheader" + i);
 
-                                from = $(element).find("#" + dFrom.getWeekId());
-                                cFrom = from.data("offset");
-                                to = $(element).find("#" + dTo.getWeekId());
-                                cTo = to.data("offset");
-                                dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
+                                    var top = tools.getCellSize() * 5 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
+                                    datapanel.append(_bar);
+                                    break;
 
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 3 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+                                // **Weekly data**
+                                case "weeks":
+                                    var dtFrom = tools.dateDeserialize(day.from);
+                                    var dtTo = tools.dateDeserialize(day.to);
 
-                                datapanel.append(_bar);
-                                break;
+                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+                                        dtFrom.setDate(dtFrom.getDate() + 4);
+                                    }
 
-                            // **Monthly data**
-                            case "months":
-                                dFrom = tools.dateDeserialize(day.from);
-                                dTo = tools.dateDeserialize(day.to);
+                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+                                        dtFrom.setDate(dtFrom.getDate() + 4);
+                                    }
 
-                                if (dFrom.getDate() <= 3 && dFrom.getMonth() === 0) {
-                                    dFrom.setDate(dFrom.getDate() + 4);
-                                }
+                                    if (dtTo.getDate() <= 3 && dtTo.getMonth() === 0) {
+                                        dtTo.setDate(dtTo.getDate() + 4);
+                                    }
 
-                                if (dFrom.getDate() <= 3 && dFrom.getMonth() === 0) {
-                                    dFrom.setDate(dFrom.getDate() + 4);
-                                }
+                                    var from = $(element).find("#" + dtFrom.getWeekId());
 
-                                if (dTo.getDate() <= 3 && dTo.getMonth() === 0) {
-                                    dTo.setDate(dTo.getDate() + 4);
-                                }
+                                    var cFrom = from.attr("offset");
 
-                                from = $(element).find("#dh-" + tools.genId(dFrom.getTime()));
-                                cFrom = from.data("offset");
-                                to = $(element).find("#dh-" + tools.genId(dTo.getTime()));
-                                cTo = to.data("offset");
-                                dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
+                                    var to = $(element).find("#" + dtTo.getWeekId());
+                                    var cTo = to.attr("offset");
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
+                                    var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 2 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+                                    _bar = core.createProgressBar(
+                                             dl,
+                                             day.customClass ? day.customClass : "",
+                                             day.desc ? day.desc : "",
+                                             day.label ? day.label : "",
+                                            day.dataObj ? day.dataObj : null
+                                        );
 
-                                datapanel.append(_bar);
-                                break;
+                                    // find row
+                                    var topEl = $(element).find("#rowheader" + i);
 
-                            // **Days**
-                            case "days":
-                                /* falls through */
-                            default:
-                                dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
-                                dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
-                                from = $(element).find("#dh-" + dFrom);
-                                cFrom = from.data("offset");
-                                dl = Math.floor(((dTo / 1000) - (dFrom / 1000)) / 86400) + 1;
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
+                                    var top = tools.getCellSize() * 3 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 4 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+                                    datapanel.append(_bar);
+                                    break;
 
-                                datapanel.append(_bar);
+                                // **Monthly data**
+                                case "months":
+                                    var dtFrom = tools.dateDeserialize(day.from);
+                                    var dtTo = tools.dateDeserialize(day.to);
+
+                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+                                        dtFrom.setDate(dtFrom.getDate() + 4);
+                                    }
+
+                                    if (dtFrom.getDate() <= 3 && dtFrom.getMonth() === 0) {
+                                        dtFrom.setDate(dtFrom.getDate() + 4);
+                                    }
+
+                                    if (dtTo.getDate() <= 3 && dtTo.getMonth() === 0) {
+                                        dtTo.setDate(dtTo.getDate() + 4);
+                                    }
+
+                                    var from = $(element).find("#dh-" + tools.genId(dtFrom.getTime()));
+                                    var cFrom = from.attr("offset");
+                                    var to = $(element).find("#dh-" + tools.genId(dtTo.getTime()));
+                                    var cTo = to.attr("offset");
+                                    var dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
+
+                                    _bar = core.createProgressBar(
+                                        dl,
+                                        day.customClass ? day.customClass : "",
+                                        day.desc ? day.desc : "",
+                                        day.label ? day.label : "",
+                                        day.dataObj ? day.dataObj : null
+                                    );
+
+                                    // find row
+                                    var topEl = $(element).find("#rowheader" + i);
+
+                                    var top = tools.getCellSize() * 2 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+                                    datapanel.append(_bar);
+                                    break;
+
+                                // **Days**
+                                default:
+                                    var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
+                                    var dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
+
+                                    var from = $(element).find("#dh-" + dFrom);
+                                    var cFrom = from.attr("offset");
+
+                                    var dl = Math.floor(((dTo / 1000) - (dFrom / 1000)) / 86400) + 1;
+                                    _bar = core.createProgressBar(
+                                                dl,
+                                                day.customClass ? day.customClass : "",
+                                                day.desc ? day.desc : "",
+                                                day.label ? day.label : "",
+                                                day.dataObj ? day.dataObj : null
+                                        );
+
+                                    // find row
+                                    var topEl = $(element).find("#rowheader" + i);
+
+                                    var top = tools.getCellSize() * 4 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+                                    datapanel.append(_bar);
+
+                                    break;
                             }
-
                             var $l = _bar.find(".fn-label");
                             if ($l && _bar.length) {
                                 var gray = invertColor(_bar[0].style.backgroundColor);
@@ -1096,46 +1208,55 @@
             navigateTo: function (element, val) {
                 var $rightPanel = $(element).find(".fn-gantt .rightPanel");
                 var $dataPanel = $rightPanel.find(".dataPanel");
+                $dataPanel.click = function () {
+                    alert(arguments.join(""));
+                };
                 var rightPanelWidth = $rightPanel.width();
                 var dataPanelWidth = $dataPanel.width();
-                var shift = function () {
-                  core.repositionLabel(element);
-                };
-                var maxLeft, curMarg;
+
                 switch (val) {
-                case "begin":
-                    $dataPanel.animate({ "margin-left": "0px" }, "fast", shift);
-                    element.scrollNavigation.panelMargin = 0;
-                    break;
-                case "end":
-                    var mLeft = dataPanelWidth - rightPanelWidth;
-                    element.scrollNavigation.panelMargin = mLeft * -1;
-                    $dataPanel.animate({ "margin-left": "-" + mLeft }, "fast", shift);
-                    break;
-                case "now":
-                    if (!element.scrollNavigation.canScroll || !$dataPanel.find(".today").length) {
-                        return false;
-                    }
-                    maxLeft = (dataPanelWidth - rightPanelWidth) * -1;
-                    curMarg = $dataPanel.css("margin-left").replace("px", "");
-                    val = $dataPanel.find(".today").offset().left - $dataPanel.offset().left;
-                    val *= -1;
-                    if (val > 0) {
-                        val = 0;
-                    } else if (val < maxLeft) {
-                        val = maxLeft;
-                    }
-                    $dataPanel.animate({ "margin-left": val }, "fast", shift);
-                    element.scrollNavigation.panelMargin = val;
-                    break;
-                default:
-                    maxLeft = (dataPanelWidth - rightPanelWidth) * -1;
-                    curMarg = $dataPanel.css("margin-left").replace("px", "");
-                    val = parseInt(curMarg, 10) + val;
-                    if (val <= 0 && val >= maxLeft) {
-                        $dataPanel.animate({ "margin-left": val }, "fast", shift);
-                    }
-                    element.scrollNavigation.panelMargin = val;
+                    case "begin":
+                        $dataPanel.animate({
+                            "margin-left": "0px"
+                        }, "fast", function () { core.repositionLabel(element); });
+                        element.scrollNavigation.panelMargin = 0;
+                        break;
+                    case "end":
+                        var mLeft = dataPanelWidth - rightPanelWidth;
+                        element.scrollNavigation.panelMargin = mLeft * -1;
+                        $dataPanel.animate({
+                            "margin-left": "-" + mLeft + "px"
+                        }, "fast", function () { core.repositionLabel(element); });
+                        break;
+                    case "now":
+                        if (!element.scrollNavigation.canScroll || !$dataPanel.find(".today").length) {
+                            return false;
+                        }
+                        var max_left = (dataPanelWidth - rightPanelWidth) * -1;
+                        var cur_marg = $dataPanel.css("margin-left").replace("px", "");
+                        var val = $dataPanel.find(".today").offset().left - $dataPanel.offset().left;
+                        val *= -1;
+                        if (val > 0) {
+                            val = 0;
+                        } else if (val < max_left) {
+                            val = max_left;
+                        }
+                        $dataPanel.animate({
+                            "margin-left": val + "px"
+                        }, "fast", core.repositionLabel(element));
+                        element.scrollNavigation.panelMargin = val;
+                        break;
+                    default:
+                        var max_left = (dataPanelWidth - rightPanelWidth) * -1;
+                        var cur_marg = $dataPanel.css("margin-left").replace("px", "");
+                        var val = parseInt(cur_marg, 10) + val;
+                        if (val <= 0 && val >= max_left) {
+                            $dataPanel.animate({
+                                "margin-left": val + "px"
+                            }, "fast", core.repositionLabel(element));
+                        }
+                        element.scrollNavigation.panelMargin = val;
+                        break;
                 }
                 core.synchronizeScroller(element);
             },
@@ -1153,12 +1274,16 @@
             },
 
             // Change zoom level
+
+            // val: Param to tell if this is a zoom in or out. In = -1, out = 1
+            // todo: Add new elseif statement here for the minutes zooming later
             zoomInOut: function (element, val) {
                 core.waitToggle(element, true, function () {
 
                     var zoomIn = (val < 0);
 
                     var scaleSt = element.scaleStep + val * 3;
+                    // never allow scaleSt to be less than one. Also, transform 4s into 3s.
                     scaleSt = scaleSt <= 1 ? 1 : scaleSt === 4 ? 3 : scaleSt;
                     var scale = settings.scale;
                     var headerRows = element.headerRows;
@@ -1188,13 +1313,11 @@
                         scaleSt = 13;
                     }
 
-                    // do nothing if attempting to zoom past max/min
-                    if ((zoomIn && $.inArray(scale, scales) < $.inArray(settings.minScale, scales)) ||
-                        (!zoomIn && $.inArray(scale, scales) > $.inArray(settings.maxScale, scales))) {
+                    if ((zoomIn && $.inArray(scale, scales) < $.inArray(settings.minScale, scales))
+                        || (!zoomIn && $.inArray(scale, scales) > $.inArray(settings.maxScale, scales))) {
                         core.init(element);
                         return;
                     }
-
                     element.scaleStep = scaleSt;
                     settings.scale = scale;
                     element.headerRows = headerRows;
@@ -1204,9 +1327,9 @@
                     element.scaleOldWidth = ($dataPanel.width() - $rightPanel.width());
 
                     if (settings.useCookie) {
-                        $.cookie(settings.cookieKey + "CurrentScale", settings.scale);
+                        $.cookie(this.cookieKey + "CurrentScale", settings.scale);
                         // reset scrollPos
-                        $.cookie(settings.cookieKey + "ScrollPos", null);
+                        $.cookie(this.cookieKey + "ScrollPos", null);
                     }
                     core.init(element);
                 });
@@ -1229,19 +1352,10 @@
 
             // Move chart via mousewheel
             wheelScroll: function (element, e) {
-                e.preventDefault(); // e is a jQuery Event
+				e.preventDefault(); // e is a jQuery Event
+                var delta = e.detail ? e.detail * (-50) : e.wheelDelta / 120 * 50;
 
-                // attempts to normalize scroll wheel velocity
-                var delta = ( 'detail' in e ? e.detail :
-                              'wheelDelta' in e.originalEvent ? - 1/120 * e.originalEvent.wheelDelta :
-                              e.originalEvent.deltaY ? e.originalEvent.deltaY / Math.abs(e.originalEvent.deltaY) :
-                              e.originalEvent.detail );
-
-                // simpler normalization, ignoring per-device/browser/platform acceleration & semantic variations
-                //var delta = e.detail || - (e = e.originalEvent).wheelData || e.deltaY /* || e.deltaX */ || e.detail;
-                //delta = ( delta / Math.abs(delta) ) || 0;
-
-                core.scrollPanel(element, -50 * delta);
+                core.scrollPanel(element, delta);
 
                 clearTimeout(element.scrollNavigation.repositionDelay);
                 element.scrollNavigation.repositionDelay = setTimeout(core.repositionLabel, 50, element);
@@ -1272,10 +1386,10 @@
                         $dataPanel.css("margin-left", "0px");
                         element.scrollNavigation.panelMargin = 0;
                     } else if (pos >= bWidth - (wButton * 1)) {
-                        $dataPanel.css("margin-left", mLeft * -1);
+                        $dataPanel.css("margin-left", mLeft * -1 + "px");
                         element.scrollNavigation.panelMargin = mLeft * -1;
                     } else {
-                        $dataPanel.css("margin-left", pPos);
+                        $dataPanel.css("margin-left", pPos + "px");
                         element.scrollNavigation.panelMargin = pPos;
                     }
                     clearTimeout(element.scrollNavigation.repositionDelay);
@@ -1291,36 +1405,37 @@
                 var _panelMargin = parseInt(element.scrollNavigation.panelMargin, 10) + delta;
                 if (_panelMargin > 0) {
                     element.scrollNavigation.panelMargin = 0;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin);
+                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin + "px");
                 } else if (_panelMargin < element.scrollNavigation.panelMaxPos * -1) {
                     element.scrollNavigation.panelMargin = element.scrollNavigation.panelMaxPos * -1;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin);
+                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin + "px");
                 } else {
                     element.scrollNavigation.panelMargin = _panelMargin;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin);
+                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin + "px");
                 }
                 core.synchronizeScroller(element);
             },
 
             // Synchronize scroller
             synchronizeScroller: function (element) {
-                if (settings.navigate !== "scroll") { return; }
-                var $rightPanel = $(element).find(".fn-gantt .rightPanel");
-                var $dataPanel = $rightPanel.find(".dataPanel");
-                var $sliderBar = $(element).find(".nav-slider-bar");
-                var $sliderBtn = $sliderBar.find(".nav-slider-button");
+                if (settings.navigate === "scroll") {
+                    var $rightPanel = $(element).find(".fn-gantt .rightPanel");
+                    var $dataPanel = $rightPanel.find(".dataPanel");
+                    var $sliderBar = $(element).find(".nav-slider-bar");
+                    var $sliderBtn = $sliderBar.find(".nav-slider-button");
 
-                var bWidth = $sliderBar.width();
-                var wButton = $sliderBtn.width();
+                    var bWidth = $sliderBar.width();
+                    var wButton = $sliderBtn.width();
 
-                var mLeft = $dataPanel.width() - $rightPanel.width();
-                var hPos = $dataPanel.css("margin-left") || 0;
-                if (hPos) {
-                    hPos = hPos.replace("px", "");
+                    var mLeft = $dataPanel.width() - $rightPanel.width();
+                    var hPos = 0;
+                    if ($dataPanel.css("margin-left")) {
+                        hPos = $dataPanel.css("margin-left").replace("px", "");
+                    }
+                    var pos = hPos * bWidth / mLeft - $sliderBtn.width() * 0.25;
+                    pos = pos > 0 ? 0 : (pos * -1 >= bWidth - (wButton * 0.75)) ? (bWidth - (wButton * 1.25)) * -1 : pos;
+                    $sliderBtn.css("left", pos * -1);
                 }
-                var pos = hPos * bWidth / mLeft - $sliderBtn.width() * 0.25;
-                pos = pos > 0 ? 0 : (pos * -1 >= bWidth - (wButton * 0.75)) ? (bWidth - (wButton * 1.25)) * -1 : pos;
-                $sliderBtn.css("left", pos * -1);
             },
 
             // Reposition data labels
@@ -1335,7 +1450,7 @@
                     }
 
                     if (settings.useCookie) {
-                        $.cookie(settings.cookieKey + "ScrollPos", $dataPanel.css("margin-left").replace("px", ""));
+                        $.cookie(this.cookieKey + "ScrollPos", $dataPanel.css("margin-left").replace("px", ""));
                     }
                 }, 500);
             },
@@ -1348,8 +1463,8 @@
                     var eh = $(element).outerHeight();
 
                     if (!element.loader) {
-                        element.loader = $('<div class="fn-gantt-loader">' +
-                        '<div class="fn-gantt-loader-spinner"><span>' + settings.waitText + '</span></div></div>');
+                        element.loader = $('<div class="fn-gantt-loader">'
+                        + '<div class="fn-gantt-loader-spinner"><span>' + settings.waitText + '</span></div></div>');
                     }
                     $(element).append(element.loader);
                     setTimeout(fn, 500);
@@ -1373,28 +1488,26 @@
                     });
                 });
                 maxDate = maxDate || new Date();
-                var bd;
                 switch (settings.scale) {
-                case "hours":
-                    maxDate.setHours(Math.ceil((maxDate.getHours()) / element.scaleStep) * element.scaleStep);
-                    maxDate.setHours(maxDate.getHours() + element.scaleStep * 3);
-                    break;
-                case "weeks":
-                    bd = new Date(maxDate.getTime());
-                    bd = new Date(bd.setDate(bd.getDate() + 3 * 7));
-                    var md = Math.floor(bd.getDate() / 7) * 7;
-                    maxDate = new Date(bd.getFullYear(), bd.getMonth(), md === 0 ? 4 : md - 3);
-                    break;
-                case "months":
-                    bd = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
-                    bd.setMonth(bd.getMonth() + 2);
-                    maxDate = new Date(bd.getFullYear(), bd.getMonth(), 1);
-                    break;
-                case "days":
-                    /* falls through */
-                default:
-                    maxDate.setHours(0);
-                    maxDate.setDate(maxDate.getDate() + 3);
+                    case "hours":
+                        maxDate.setHours(Math.ceil((maxDate.getHours()) / element.scaleStep) * element.scaleStep);
+                        maxDate.setHours(maxDate.getHours() + element.scaleStep * 3);
+                        break;
+                    case "weeks":
+                        var bd = new Date(maxDate.getTime());
+                        var bd = new Date(bd.setDate(bd.getDate() + 3 * 7));
+                        var md = Math.floor(bd.getDate() / 7) * 7;
+                        maxDate = new Date(bd.getFullYear(), bd.getMonth(), md === 0 ? 4 : md - 3);
+                        break;
+                    case "months":
+                        var bd = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1);
+                        bd.setMonth(bd.getMonth() + 2);
+                        maxDate = new Date(bd.getFullYear(), bd.getMonth(), 1);
+                        break;
+                    default:
+                        maxDate.setHours(0);
+                        maxDate.setDate(maxDate.getDate() + 3);
+                        break;
                 }
                 return maxDate;
             },
@@ -1409,27 +1522,28 @@
                 });
                 minDate = minDate || new Date();
                 switch (settings.scale) {
-                case "hours":
-                    minDate.setHours(Math.floor((minDate.getHours()) / element.scaleStep) * element.scaleStep);
-                    minDate.setHours(minDate.getHours() - element.scaleStep * 3);
-                    break;
-                case "weeks":
-                    // wtf is happening here?
-                    var bd = new Date(minDate.getTime());
-                    bd = new Date(bd.setDate(bd.getDate() - 3 * 7));
-                    var md = Math.floor(bd.getDate() / 7) * 7;
-                    minDate = new Date(bd.getFullYear(), bd.getMonth(), md === 0 ? 4 : md - 3);
-                    break;
-                case "months":
-                    minDate.setHours(0, 0, 0, 0);
-                    minDate.setDate(1);
-                    minDate.setMonth(minDate.getMonth() - 3);
-                    break;
-                case "days":
-                    /* falls through */
-                default:
-                    minDate.setHours(0, 0, 0, 0);
-                    minDate.setDate(minDate.getDate() - 3);
+                    case "hours":
+                        minDate.setHours(Math.floor((minDate.getHours()) / element.scaleStep) * element.scaleStep);
+                        minDate.setHours(minDate.getHours() - element.scaleStep * 3);
+                        minDate.setMinutes(0);
+                        minDate.setSeconds(0);
+                        minDate.setMilliseconds(0);
+                        break;
+                    case "weeks":
+                        var bd = new Date(minDate.getTime());
+                        var bd = new Date(bd.setDate(bd.getDate() - 3 * 7));
+                        var md = Math.floor(bd.getDate() / 7) * 7;
+                        minDate = new Date(bd.getFullYear(), bd.getMonth(), md === 0 ? 4 : md - 3);
+                        break;
+                    case "months":
+                        var bd = new Date(minDate.getFullYear(), minDate.getMonth(), 1);
+                        bd.setMonth(bd.getMonth() - 3);
+                        minDate = new Date(bd.getFullYear(), bd.getMonth(), 1);
+                        break;
+                    default:
+                        minDate.setHours(0);
+                        minDate.setDate(minDate.getDate() - 3);
+                        break;
                 }
                 return minDate;
             },
@@ -1455,7 +1569,10 @@
                 var end = new Date(to);
 
                 // GR: Fix begin
-                current.setHours(0, 0, 0, 0);
+                current.setMilliseconds(0);
+                current.setSeconds(0);
+                current.setMinutes(0);
+                current.setHours(0);
 
                 end.setMilliseconds(0);
                 end.setSeconds(0);
@@ -1501,6 +1618,7 @@
             // Return an array of Date objects between a range of weeks
             // between `from` and `to`
             parseWeeksRange: function (from, to) {
+
                 var current = new Date(from);
                 var end = new Date(to); // <- never used?
 
@@ -1520,6 +1638,7 @@
             // Return an array of Date objects between a range of months
             // between `from` and `to`
             parseMonthsRange: function (from, to) {
+
                 var current = new Date(from);
                 var end = new Date(to); // <- never used?
 
@@ -1543,29 +1662,29 @@
             },
 
             // Generate an id for a date
-            genId: function (ticks) { // varargs
+            // Using the value for the current scale (zoom level) "arguments[1]", the start/end columns are determined by tructating the given time
+            // down to beginning of the proper column
+            genId: function (ticks) {
                 var t = new Date(ticks);
                 switch (settings.scale) {
-                case "hours":
-                    var hour = t.getHours();
-                    if (arguments.length >= 2) {
-                        hour = (Math.floor(t.getHours() / arguments[1]) * arguments[1]);
-                    }
-                    return (new Date(t.getFullYear(), t.getMonth(), t.getDate(), hour)).getTime();
-                case "weeks":
-                    var y = t.getFullYear();
-                    var w = t.getDayForWeek().getWeekOfYear();
-                    var m = t.getMonth();
-                    if (m === 11 && w === 1) {
-                        y++;
-                    }
-                    return y + "-" + w;
-                case "months":
-                    return t.getFullYear() + "-" + t.getMonth();
-                case "days":
-                    /* falls through */
-                default:
-                    return (new Date(t.getFullYear(), t.getMonth(), t.getDate())).getTime();
+                    case "hours":
+                        var hour = t.getHours();
+                        if (arguments.length >= 2) {
+                            hour = (Math.floor((t.getHours()) / arguments[1]) * arguments[1]);
+                        }
+                        return (new Date(t.getFullYear(), t.getMonth(), t.getDate(), hour)).getTime();
+                    case "weeks":
+                        var y = t.getFullYear();
+                        var w = t.getDayForWeek().getWeekOfYear();
+                        var m = t.getMonth();
+                        if (m === 11 && w === 1) {
+                            y++;
+                        }
+                        return y + "-" + w;
+                    case "months":
+                        return t.getFullYear() + "-" + t.getMonth();
+                    default:
+                        return (new Date(t.getFullYear(), t.getMonth(), t.getDate())).getTime();
                 }
             },
 
@@ -1581,7 +1700,7 @@
             // Returns true when the given date appears in the array of holidays, if provided
             isHoliday: (function() { // IIFE
                 // short-circuits the function if no holidays option was passed
-                if (!settings.holidays || !settings.holidays.length) {
+                if (!settings.holidays) {
                   return function () { return false; };
                 }
                 var holidays = false;
@@ -1599,15 +1718,27 @@
                 };
             })(),
 
-            // Get the current cell height
+            // Get the current cell size
+            _getCellSize: null,
             getCellSize: function () {
-                if (typeof tools._getCellSize === "undefined") {
-                    var measure = $('<div style="display: none; position: absolute;" class="fn-gantt"><div class="row"></div></div>');
-                    $("body").append(measure);
-                    tools._getCellSize = measure.find(".row").height();
-                    measure.empty().remove();
+                if (!tools._getCellSize) {
+                    $("body").append(
+                        $('<div style="display: none; position: absolute;" class="fn-gantt" id="measureCellWidth"><div class="row"></div></div>')
+                    );
+                    tools._getCellSize = $("#measureCellWidth .row").height();
+                    $("#measureCellWidth").empty().remove();
                 }
                 return tools._getCellSize;
+            },
+
+            // Get the current size of the right panel
+            getRightPanelSize: function () {
+                $("body").append(
+                    $('<div style="display: none; position: absolute;" class="fn-gantt" id="measureCellWidth"><div class="rightPanel"></div></div>')
+                );
+                var ret = $("#measureCellWidth .rightPanel").height();
+                $("#measureCellWidth").empty().remove();
+                return ret;
             },
 
             // Get the current page height
@@ -1616,14 +1747,15 @@
             },
 
             // Get the current margin size of the progress bar
+            _getProgressBarMargin: null,
             getProgressBarMargin: function () {
-                if (typeof tools._getProgressBarMargin === "undefined") {
-                    var measure = $('<div style="display: none; position: absolute;"><div class="fn-gantt"><div class="rightPanel"><div class="dataPanel"><div class="row day"><div class="bar"></div></div></div></div></div></div>');
-                    var bar = measure.find(".fn-gantt .rightPanel .day .bar");
-                    $("body").append(measure);
-                    tools._getProgressBarMargin = parseInt(bar.css("margin-left").replace("px", ""), 10);
-                    tools._getProgressBarMargin += parseInt(bar.css("margin-right").replace("px", ""), 10);
-                    measure.empty().remove();
+                if (!tools._getProgressBarMargin && tools._getProgressBarMargin !== 0) {
+                    $("body").append(
+                        $('<div style="display: none; position: absolute;" id="measureBarWidth" ><div class="fn-gantt"><div class="rightPanel"><div class="dataPanel"><div class="row day"><div class="bar" /></div></div></div></div></div>')
+                    );
+                    tools._getProgressBarMargin = parseInt($("#measureBarWidth .fn-gantt .rightPanel .day .bar").css("margin-left").replace("px", ""), 10);
+                    tools._getProgressBarMargin += parseInt($("#measureBarWidth .fn-gantt .rightPanel .day .bar").css("margin-right").replace("px", ""), 10);
+                    $("#measureBarWidth").empty().remove();
                 }
                 return tools._getProgressBarMargin;
             }
@@ -1645,36 +1777,19 @@
 
             // Update cookie with current scale
             if (settings.useCookie) {
-                var sc = $.cookie(settings.cookieKey + "CurrentScale");
+                var sc = $.cookie(this.cookieKey + "CurrentScale");
                 if (sc) {
-                    settings.scale = sc;
+                    settings.scale = $.cookie(this.cookieKey + "CurrentScale");
                 } else {
-                    $.cookie(settings.cookieKey + "CurrentScale", settings.scale);
+                    $.cookie(this.cookieKey + "CurrentScale", settings.scale);
                 }
             }
 
             switch (settings.scale) {
-            //case "hours":
-            //    this.headerRows = 5;
-            //    this.scaleStep = 8;
-            //    break;
-            case "hours":
-                this.headerRows = 5;
-                this.scaleStep = 1;
-                break;
-            case "weeks":
-                this.headerRows = 3;
-                this.scaleStep = 13;
-                break;
-            case "months":
-                this.headerRows = 2;
-                this.scaleStep = 14;
-                break;
-            case "days":
-                /* falls through */
-            default:
-                this.headerRows = 4;
-                this.scaleStep = 13;
+                case "hours": this.headerRows = 5; this.scaleStep = 1; break;
+                case "weeks": this.headerRows = 3; this.scaleStep = 13; break;
+                case "months": this.headerRows = 2; this.scaleStep = 14; break;
+                default: this.headerRows = 4; this.scaleStep = 13; break;
             }
 
             this.scrollNavigation = {
