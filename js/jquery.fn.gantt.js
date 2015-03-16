@@ -257,8 +257,10 @@
             // **Render the grid**
             render: function (element) {
                 var content = $('<div class="fn-content"/>');
+
                 var $leftPanel = core.leftPanel(element);
                 content.append($leftPanel);
+
                 var $rightPanel = core.rightPanel(element, $leftPanel);
                 var mLeft, hPos;
 
@@ -320,7 +322,6 @@
                 /* Left panel */
                 var ganttLeftPanel = $('<div class="leftPanel"/>')
                     .append($('<div class="row spacer"/>')
-                    .css("height", tools.getCellSize() * element.headerRows + "px")
                     .css("width", "100%"));
 
                 var entries = [];
@@ -409,7 +410,7 @@
 
             // Creates and return the right panel containing the year/week/day
             // header
-            rightPanel: function (element, leftPanel /* <- never used? */) {
+            rightPanel: function (element, $leftPanel) {
 
                 var range = null;
                 // Days of the week have a class of one of
@@ -552,6 +553,8 @@
                         dataPanel.append($('<div class="row"/>').html(dowArr.join("")));
                         dataPanel.append($('<div class="row"/>').html(horArr.join("")));
 
+                        element.headerRows = 5;
+
                         break;
 
                     // **Weeks**
@@ -617,6 +620,8 @@
 
                         dataPanel.append(yearArr.join("") + monthArr.join("") + dayArr.join("") + (dowArr.join("")));
 
+                        element.headerRows = 3;
+
                         break;
 
                     // **Months**
@@ -667,6 +672,8 @@
                         dataPanel.append(monthArr.join(""));
                         dataPanel.append($('<div class="row"/>').html(dayArr.join("")));
                         dataPanel.append($('<div class="row"/>').html(dowArr.join("")));
+
+                        element.headerRows = 2;
 
                         break;
 
@@ -746,8 +753,13 @@
                         dataPanel.append($('<div class="row" style="margin-left: 0;" />').html(dayArr.join("")));
                         dataPanel.append($('<div class="row" style="margin-left: 0;" />').html(dowArr.join("")));
 
+                        element.headerRows = 4;
+
                         break;
                 }
+
+                // update height of spacer element
+                $leftPanel.find('.spacer').css("height", tools.getCellSize() * element.headerRows + "px")
 
                 return $('<div class="rightPanel"></div>').append(dataPanel);
             },
@@ -1029,7 +1041,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 5 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    var top = tools.getCellSize() * element.headerRows + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
@@ -1072,7 +1084,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 3 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    var top = tools.getCellSize() * element.headerRows + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
@@ -1112,7 +1124,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 2 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    var top = tools.getCellSize() * element.headerRows + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
@@ -1138,7 +1150,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 4 + 2 + parseInt(topEl.attr("offset"), 10);
+                                    var top = tools.getCellSize() * element.headerRows + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
@@ -1226,30 +1238,23 @@
                     var scaleSt = element.scaleStep + val * 3;
                     scaleSt = scaleSt <= 1 ? 1 : scaleSt === 4 ? 3 : scaleSt;
                     var scale = settings.scale;
-                    var headerRows = element.headerRows;
                     if (settings.scale === "hours" && scaleSt >= 13) {
                         scale = "days";
-                        headerRows = 4;
                         scaleSt = 13;
                     } else if (settings.scale === "days" && zoomIn) {
                         scale = "hours";
-                        headerRows = 5;
                         scaleSt = 12;
                     } else if (settings.scale === "days" && !zoomIn) {
                         scale = "weeks";
-                        headerRows = 3;
                         scaleSt = 13;
                     } else if (settings.scale === "weeks" && !zoomIn) {
                         scale = "months";
-                        headerRows = 2;
                         scaleSt = 14;
                     } else if (settings.scale === "weeks" && zoomIn) {
                         scale = "days";
-                        headerRows = 4;
                         scaleSt = 13;
                     } else if (settings.scale === "months" && zoomIn) {
                         scale = "weeks";
-                        headerRows = 3;
                         scaleSt = 13;
                     }
 
@@ -1260,7 +1265,6 @@
                     }
                     element.scaleStep = scaleSt;
                     settings.scale = scale;
-                    element.headerRows = headerRows;
                     var $rightPanel = $(element).find(".fn-gantt .rightPanel");
                     var $dataPanel = $rightPanel.find(".dataPanel");
                     element.hPosition = $dataPanel.css("margin-left").replace("px", "");
@@ -1730,11 +1734,11 @@
             }
 
             switch (settings.scale) {
-                //case "hours": this.headerRows = 5; this.scaleStep = 8; break;
-                case "hours": this.headerRows = 5; this.scaleStep = 1; break;
-                case "weeks": this.headerRows = 3; this.scaleStep = 13; break;
-                case "months": this.headerRows = 2; this.scaleStep = 14; break;
-                default: this.headerRows = 4; this.scaleStep = 13; break;
+                //case "hours": this.scaleStep = 8; break;
+                case "hours": this.scaleStep = 1; break;
+                case "weeks": this.scaleStep = 13; break;
+                case "months": this.scaleStep = 14; break;
+                default: this.scaleStep = 13; break;
             }
 
             this.scrollNavigation = {
