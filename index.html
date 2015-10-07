@@ -35,6 +35,9 @@
                  -moz-box-sizing: content-box;
                       box-sizing: content-box;
             }
+            code {
+                white-space: pre-line;
+            }
         </style>
     </head>
     <body>
@@ -219,6 +222,31 @@ $(".selector").gantt({
                         </td>
                         <td>
                             string
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>
+                            <code>buttons</code></td>
+                        <td>
+                            object <code>
+                            {
+                            navBegin: "To beginning",
+                            navEnd: "To end",
+                            navNextDay: "Next day",
+                            navNextPage: "Next page",
+                            navNextWeek: "Next week",
+                            navNow: "Now",
+                            navPrevDay: "Previous day",
+                            navPrevPage: "Previous page",
+                            navPrevWeek: "Previous week",
+                            navZoomIn: "Zoom in",
+                            navZoomOut: "Zoom out"
+                            }
+                        </code>
+                        </td>
+                        <td>
+                            An object containing localized navigation buttons description
                         </td>
                     </tr>
                     <tr>
