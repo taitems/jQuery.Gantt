@@ -155,7 +155,7 @@
     text-align: center;
 }
 
-.fn-gantt .rightPanel .month, .fn-gantt .rightPanel .year {
+.fn-gantt .rightPanel .weekyear, .fn-gantt .rightPanel .month, .fn-gantt .rightPanel .year {
     float: left;
     overflow: hidden;
     border-left: 1px solid #DDD;
