@@ -751,6 +751,7 @@
                         }
                         scaleUnitsThisMonth++;
 
+                        // Fill week of year
                         if (rday.getWeekOfYear() !== weekOfYear) {
                             // Fill weeks
                             woyArr.push(
@@ -1167,7 +1168,7 @@
 
                                 // find row
                                 topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 4 + 2 + topEl.data("offset");
+                                top = tools.getCellSize() * 5 + 2 + topEl.data("offset");
                                 _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
                                 datapanel.append(_bar);
@@ -1769,7 +1770,7 @@
             case "days":
                 /* falls through */
             default:
-                this.headerRows = 4;
+                this.headerRows = 5;
                 this.scaleStep = 13;
             }
 
