@@ -449,7 +449,7 @@
                 var i, len;
                 var year, month, week, day;
                 var rday, dayClass;
-                var dataPanel;
+                var headerWidth, headerPanel;
 
                 // Setup the headings based on the chosen `settings.scale`
                 switch (settings.scale) {
@@ -562,10 +562,11 @@
                         'style="width: ' + tools.getCellSize() * hoursInDay + 'px;">' +
                         '<div class="fn-label">' + settings.dow[day.getDay()] + '</div></div>');
 
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+                    headerPanel = $('<div class="headerPanel" style="width: '
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
-                    dataPanel.append(
+                    headerPanel.append(
                         $row.clone().html(yearArr.join("")),
                         $row.clone().html(monthArr.join("")),
                         $row.clone().html(dayArr.join("")),
@@ -644,10 +645,11 @@
                         settings.months[month] +
                         '</div></div>');
 
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+                    headerPanel = $('<div class="headerPanel" style="width: '
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
-                    dataPanel.append(
+                    headerPanel.append(
                         $row.clone().html(yearArr.join("")),
                         $row.clone().html(monthArr.join("")),
                         $row.clone().html(dayArr.join(""))
@@ -697,10 +699,11 @@
                         settings.months[month] +
                         '</div></div>');
 
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+                    headerPanel = $('<div class="headerPanel" style="width: '
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
-                    dataPanel.append(
+                    headerPanel.append(
                         $row.clone().html(yearArr.join("")),
                         $row.clone().html(monthArr.join("")),
                         $row.clone().html(dayArr.join("")),
@@ -779,16 +782,20 @@
                         settings.months[month] +
                         '</div></div>');
 
-                    dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+                    headerPanel = $('<div class="headerPanel" style="width: '
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
-                    dataPanel.append(
+                    headerPanel.append(
                         $row.clone().html(yearArr.join("")),
                         $row.clone().html(monthArr.join("")),
                         $row.clone().html(dayArr.join("")),
                         $row.clone().html(dowArr.join(""))
                     );
                 }
+
+                var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
+                dataPanel.append(headerPanel);
 
                 return $('<div class="rightPanel"></div>').append(dataPanel);
             },

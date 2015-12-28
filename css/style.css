@@ -102,6 +102,12 @@
     overflow: hidden;
 }
 
+.fn-gantt .headerPanel {
+    position: fixed;
+    overflow: visible;
+    z-index: 15;
+}
+
 .fn-gantt .dataPanel {
     margin-left: 0px;
     border-right: 1px solid #DDD;
