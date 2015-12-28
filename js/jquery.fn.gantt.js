@@ -180,6 +180,7 @@
             dow: ["S", "M", "T", "W", "T", "F", "S"],
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
             waitText: "Please wait...",
+            weekYearPrefix : "W",
             // navigation
             navigate: "buttons",
             scrollToToday: true,
@@ -434,6 +435,9 @@
 
                 var monthArr = [];
                 var scaleUnitsThisMonth = 0;
+
+				var woyArr = [];
+				var daysInWeek = 0;
 
                 var dayArr = [];
                 var hoursInDay = 0;
@@ -715,6 +719,7 @@
                     var dateBefore = ktkGetNextDate(range[0], -1);
                     year = dateBefore.getFullYear();
                     month = dateBefore.getMonth();
+					var weekOfYear = dateBefore.getWeekOfYear();
                     //day = dateBefore; // <- never used?
 
                     for (i = 0, len = range.length; i < len; i++) {
@@ -745,6 +750,20 @@
                             scaleUnitsThisMonth = 0;
                         }
                         scaleUnitsThisMonth++;
+
+						if (rday.getWeekOfYear() !== weekOfYear) {
+							// Fill weeks
+							woyArr.push(
+									'<div class="row header weekyear" style="width:'
+									+ tools.getCellSize() * daysInWeek
+									+ 'px;"><div class="fn-label">'
+									+ settings.weekYearPrefix + " " + weekOfYear +
+									'</div></div>');
+
+							weekOfYear = rday.getWeekOfYear();
+							daysInWeek = 0;
+						}
+						daysInWeek++;
 
                         day = rday.getDay();
                         dayClass = dowClass[day];
@@ -779,12 +798,20 @@
                         settings.months[month] +
                         '</div></div>');
 
+                    // Last week
+					woyArr.push(
+						'<div class="row header weekyear" style="width:'
+						+ tools.getCellSize() * daysInWeek
+						+ 'px;"><div class="fn-label">'
+						+ settings.weekYearPrefix +" " + weekOfYear + '</div></div>');
+
                     dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
 
                     // Append panel elements
                     dataPanel.append(
                         $row.clone().html(yearArr.join("")),
                         $row.clone().html(monthArr.join("")),
+                        $row.clone().html(woyArr.join("")),
                         $row.clone().html(dayArr.join("")),
                         $row.clone().html(dowArr.join(""))
                     );
@@ -1231,7 +1258,7 @@
                     var headerRows = element.headerRows;
                     if (settings.scale === "hours" && scaleSt >= 13) {
                         scale = "days";
-                        headerRows = 4;
+                        headerRows = 5;
                         scaleSt = 13;
                     } else if (settings.scale === "days" && zoomIn) {
                         scale = "hours";
@@ -1247,7 +1274,7 @@
                         scaleSt = 14;
                     } else if (settings.scale === "weeks" && zoomIn) {
                         scale = "days";
-                        headerRows = 4;
+                        headerRows = 5;
                         scaleSt = 13;
                     } else if (settings.scale === "months" && zoomIn) {
                         scale = "weeks";
