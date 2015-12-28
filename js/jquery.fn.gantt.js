@@ -175,7 +175,7 @@
             source: [],
             holidays: [],
             minDate : null,
-			maxDate : null,
+            maxDate : null,
             // paging
             itemsPerPage: 7,
             // localisation
@@ -1464,12 +1464,12 @@
                 case "days":
                     /* falls through */
                 default:
-                	if (settings.maxDate == null) {
-                    	maxDate.setHours(0);
-                    	maxDate.setDate(maxDate.getDate() + 3);
-                	} else {
-						maxDate = tools.dateDeserialize(settings.maxDate);
-                	}
+                    if (settings.maxDate == null) {
+                        maxDate.setHours(0);
+                        maxDate.setDate(maxDate.getDate() + 3);
+                    } else {
+                        maxDate = tools.dateDeserialize(settings.maxDate);
+                    }
                 }
                 return maxDate;
             },
@@ -1504,12 +1504,12 @@
                 case "days":
                     /* falls through */
                 default:
-					if (settings.minDate == null) {
-                    	minDate.setHours(0, 0, 0, 0);
-                    	minDate.setDate(minDate.getDate() - 3);
-					} else {
-						minDate = tools.dateDeserialize(settings.minDate);
-					}
+                    if (settings.minDate == null) {
+                        minDate.setHours(0, 0, 0, 0);
+                        minDate.setDate(minDate.getDate() - 3);
+                    } else {
+                        minDate = tools.dateDeserialize(settings.minDate);
+                    }
                 }
                 return minDate;
             },
