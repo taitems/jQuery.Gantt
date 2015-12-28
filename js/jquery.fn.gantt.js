@@ -436,8 +436,8 @@
                 var monthArr = [];
                 var scaleUnitsThisMonth = 0;
 
-				var woyArr = [];
-				var daysInWeek = 0;
+                var woyArr = [];
+                var daysInWeek = 0;
 
                 var dayArr = [];
                 var hoursInDay = 0;
@@ -751,19 +751,19 @@
                         }
                         scaleUnitsThisMonth++;
 
-						if (rday.getWeekOfYear() !== weekOfYear) {
-							// Fill weeks
-							woyArr.push(
-									'<div class="row header weekyear" style="width:'
-									+ tools.getCellSize() * daysInWeek
-									+ 'px;"><div class="fn-label">'
-									+ settings.weekYearPrefix + " " + weekOfYear +
-									'</div></div>');
+                        if (rday.getWeekOfYear() !== weekOfYear) {
+                            // Fill weeks
+                            woyArr.push(
+                                    '<div class="row header weekyear" style="width:'
+                                    + tools.getCellSize() * daysInWeek
+                                    + 'px;"><div class="fn-label">'
+                                    + settings.weekYearPrefix + " " + weekOfYear +
+                            '</div></div>');
 
-							weekOfYear = rday.getWeekOfYear();
-							daysInWeek = 0;
-						}
-						daysInWeek++;
+                            weekOfYear = rday.getWeekOfYear();
+                            daysInWeek = 0;
+                        }
+                        daysInWeek++;
 
                         day = rday.getDay();
                         dayClass = dowClass[day];
@@ -799,11 +799,11 @@
                         '</div></div>');
 
                     // Last week
-					woyArr.push(
-						'<div class="row header weekyear" style="width:'
-						+ tools.getCellSize() * daysInWeek
-						+ 'px;"><div class="fn-label">'
-						+ settings.weekYearPrefix +" " + weekOfYear + '</div></div>');
+                    woyArr.push(
+                            '<div class="row header weekyear" style="width:'
+                            + tools.getCellSize() * daysInWeek
+                            + 'px;"><div class="fn-label">'
+                            + settings.weekYearPrefix +" " + weekOfYear + '</div></div>');
 
                     dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
 
