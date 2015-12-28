@@ -563,7 +563,7 @@
                         '<div class="fn-label">' + settings.dow[day.getDay()] + '</div></div>');
 
                     headerPanel = $('<div class="headerPanel" style="width: '
-							+ range.length * tools.getCellSize() + 'px;"/>');
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
                     headerPanel.append(
@@ -646,7 +646,7 @@
                         '</div></div>');
 
                     headerPanel = $('<div class="headerPanel" style="width: '
-							+ range.length * tools.getCellSize() + 'px;"/>');
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
                     headerPanel.append(
@@ -700,7 +700,7 @@
                         '</div></div>');
 
                     headerPanel = $('<div class="headerPanel" style="width: '
-							+ range.length * tools.getCellSize() + 'px;"/>');
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
                     headerPanel.append(
@@ -783,7 +783,7 @@
                         '</div></div>');
 
                     headerPanel = $('<div class="headerPanel" style="width: '
-							+ range.length * tools.getCellSize() + 'px;"/>');
+                            + range.length * tools.getCellSize() + 'px;"/>');
 
                     // Append panel elements
                     headerPanel.append(
@@ -793,9 +793,9 @@
                         $row.clone().html(dowArr.join(""))
                     );
                 }
-                
+
                 var dataPanel = core.dataPanel(element, range.length * tools.getCellSize());
-				dataPanel.append(headerPanel);
+                dataPanel.append(headerPanel);
 
                 return $('<div class="rightPanel"></div>').append(dataPanel);
             },
