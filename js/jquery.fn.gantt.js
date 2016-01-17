@@ -430,7 +430,7 @@
             },
 
             // Creates and return the right panel containing the year/week/day header
-            rightPanel: function (element, leftPanel /* <- never used? */) {                
+            rightPanel: function (element, leftPanel /* <- never used? */) {
                 var range = null;
                 // Days of the week have a class of one of
                 // `sn` (Sunday), `sa` (Saturday), or `wd` (Weekday)
@@ -838,7 +838,7 @@
                                 .append($('<button type="button" class="nav-link nav-prev-day"/>')
                                     .html('&lt;')
                                     .click(function () {
-                                        core.navigateTo(element, tools.getCellSize() * 1);
+                                        core.navigateTo(element, tools.getCellSize());
                                     })))
                             .append($('<div class="nav-slider-content" />')
                                     .append($('<div class="nav-slider-bar" />')
