@@ -220,6 +220,9 @@
         settings.maxScale = ($.inArray(settings.maxScale, scales) >= 0) ? settings.maxScale : scales[scales.length - 1];
         settings.minScale = ($.inArray(settings.minScale, scales) >= 0) ? settings.minScale : scales[0];
 
+        settings.maxScale = ($.inArray(settings.scale, scales) <= $.inArray(settings.maxScale, scales) ? settings.maxScale : settings.scale); 
+        settings.minScale = ($.inArray(settings.scale, scales) >= $.inArray(settings.minScale, scales) ? settings.minScale : settings.scale); 
+
         // can't use cookie if don't have `$.cookie`
         settings.useCookie = settings.useCookie && $.isFunction($.cookie);
 
