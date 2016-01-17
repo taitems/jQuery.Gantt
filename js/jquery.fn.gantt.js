@@ -1031,6 +1031,8 @@
                             var _bar;
                             var from, to, cFrom, cTo, dFrom, dTo, dl;
                             var topEl, top;
+                            var headerRows = scaleGroupSttings[element.scaleGroup].headerRows;
+                            
                             switch (element.scaleGroup) {
                             // **Hourly data**
                             case "hours":
@@ -1043,14 +1045,6 @@
                                 cTo = to.data("offset");
                                 dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 5 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                                 break;
 
                             // **Weekly data**
@@ -1064,14 +1058,6 @@
                                 cTo = to.data("offset");
                                 dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 3 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                                 break;
 
                             // **Monthly data**
@@ -1097,14 +1083,6 @@
                                 cTo = to.data("offset");
                                 dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 2 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                                 break;
 
                             // **Days**
@@ -1116,15 +1094,16 @@
                                 from = $(element).find("#dh-" + dFrom);
                                 cFrom = from.data("offset");
                                 dl = Math.floor((dTo - dFrom) / UTC_DAY_IN_MS) + 1;
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 4 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                             }
+
+                            _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
+
+                            // find row
+                            topEl = $(element).find("#rowheader" + i);
+                            top = tools.getCellSize() * headerRows + 2 + topEl.data("offset");
+                            _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+                            datapanel.append(_bar);
 
                             var $l = _bar.find(".fn-label");
                             if ($l && _bar.length) {
