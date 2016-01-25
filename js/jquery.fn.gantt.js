@@ -1195,7 +1195,7 @@
                         return;
                     }
 
-                    zoomIn ? index-- : index++;
+                    index = zoomIn ? index - 1 : index + 1;
 
                     settings.scale = scales[index];
                     element.scaleGroup = scaleSettings[settings.scale].scaleGroup;
