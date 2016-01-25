@@ -1017,7 +1017,7 @@
                 }
 
                 var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
-                $(element).find(".fn-gantt .bottom .navigate button.nav-now").prop("disabled", !$dataPanel.find(".today").length);
+                $(element).find(".fn-gantt .bottom .navigate button.nav-now").prop("disabled", !element.scrollNavigation.canScroll || !$dataPanel.find(".today").length);
 
             },
 
@@ -1204,7 +1204,7 @@
                         return;
                     }
 
-                    zoomIn ? index-- : index++;
+                    index = zoomIn ? index - 1 : index + 1;
 
                     settings.scale = scales[index];
                     element.scaleGroup = scaleSettings[settings.scale].scaleGroup;
