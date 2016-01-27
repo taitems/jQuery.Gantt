@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <title>jQuery.Gantt</title>
@@ -71,6 +71,54 @@
 
             <div class="gantt"></div>
 
+            <form class="form-inline" id="ganttControl">
+              <div class="form-group">
+                <label for="itemsPerPage">itemsPerPage:</label>
+                <input type="number" class="form-control" id="itemsPerPage" value="10">
+              </div>
+              <div class="form-group">
+                <label for="navigate">navigate:</label>
+                <select name="navigate" id="navigate" class="form-control">
+                  <option value="buttons">buttons</option>
+                  <option value="scroll" selected>scroll</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="scale">scale:</label>
+                <select name="scale" id="scale" class="form-control">
+                  <option value="months">months</option>
+                  <option value="weeks" selected>weeks</option>
+                  <option value="days">days</option>
+                  <option value="hours">hours</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="minScale">minScale:</label>
+                <select name="minScale" id="minScale" class="form-control">
+                  <option value="months">months</option>
+                  <option value="weeks">weeks</option>
+                  <option value="days">days</option>
+                  <option value="hours" selected>hours</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="maxScale">maxScale:</label>
+                <select name="maxScale" id="maxScale" class="form-control">
+                  <option value="months" selected>months</option>
+                  <option value="weeks">weeks</option>
+                  <option value="days">days</option>
+                  <option value="hours">hours</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="scrollToToday">scrollToToday:</label>
+                <select name="scrollToToday" id="scrollToToday" class="form-control">
+                  <option value="true" selected>true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Refresh</button>
+            </form>
 
 
             <h2 id="config">
@@ -482,6 +530,32 @@ values: [
 
             "use strict";
 
+            makeGanttChart();
+
+            $('form#ganttControl').submit(function() {
+                makeGanttChart();
+                return false;
+            });
+
+            $(".gantt").popover({
+                selector: ".bar",
+                title: "I'm a popover",
+                content: "And I'm the content of said popover.",
+                trigger: "hover"
+            });
+
+            prettyPrint();
+
+        });
+
+        function makeGanttChart() {
+            var itemsPerPage = parseInt($('#itemsPerPage').val(), 10);
+            var navigate = $('#navigate').val();
+            var scale = $('#scale').val();
+            var minScale = $('#minScale').val();
+            var maxScale = $('#maxScale').val();
+            var scrollToToday = $('#scrollToToday').val() === "true" ? true : false;
+
             $(".gantt").gantt({
                 source: [{
                     name: "Sprint 0",
@@ -561,12 +635,13 @@ values: [
                         customClass: "ganttOrange"
                     }]
                 }],
-                navigate: "scroll",
-                scale: "weeks",
-                maxScale: "months",
-                minScale: "hours",
-                itemsPerPage: 10,
+                navigate: navigate, // "scroll"
+                scale: scale, // "weeks"
+                maxScale: maxScale, // "months"
+                minScale: minScale, // "hours"
+                itemsPerPage: itemsPerPage, // 10
                 useCookie: true,
+                scrollToToday: scrollToToday, // true
                 onItemClick: function(data) {
                     alert("Item clicked - show some details");
                 },
@@ -580,16 +655,7 @@ values: [
                 }
             });
 
-            $(".gantt").popover({
-                selector: ".bar",
-                title: "I'm a popover",
-                content: "And I'm the content of said popover.",
-                trigger: "hover"
-            });
-
-            prettyPrint();
-
-        });
+        }
     </script>
 
     </body>
