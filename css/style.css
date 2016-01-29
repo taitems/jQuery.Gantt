@@ -231,6 +231,14 @@
     color: #714715 !important;
 }
 
+.fn-gantt .highlight {
+    background-color: rgba(222, 238, 239, 0.6);
+    z-index: 1;
+    position: absolute;
+    height: 24px;
+    width : 100%;
+}
+
 
 /* === BOTTOM NAVIGATION === */
 

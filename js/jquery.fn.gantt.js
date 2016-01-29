@@ -284,6 +284,10 @@
                 core.markNow(element);
                 core.fillData(element, $dataPanel, $leftPanel);
 
+                if (element.highlightedRow !== null) {
+                    core.highlightRow(element, element.highlightedRow);
+                }
+
                 // Set a cookie to record current position in the view
                 if (settings.useCookie) {
                     var sc = $.cookie(settings.cookieKey + "ScrollPos");
@@ -324,36 +328,33 @@
                     .css("height", tools.getCellSize() * element.headerRows)
                     .css("width", "100%"));
 
-                var entries = [];
                 $.each(element.data, function (i, entry) {
                     if (i >= element.pageNum * settings.itemsPerPage &&
                         i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-                        var dataId = ('id' in entry) ? '" data-id="' + entry.id : '';
-                        entries.push(
-                            '<div class="row name row' + i +
-                            (entry.desc ? '' : (' fn-wide '+dataId)) +
-                            '" id="rowheader' + i +
-                            '" data-offset="' + i % settings.itemsPerPage * tools.getCellSize() + '">' +
-                            '<span class="fn-label' +
-                            (entry.cssClass ? ' ' + entry.cssClass : '') + '">' +
-                            (entry.name || '') +
-                            '</span>' +
-                            '</div>');
+
+                        var nameRow = $('<div>').addClass('row name').addClass('row' + i).addClass(entry.desc ? '' : 'fn-wide')
+                            .attr('id', 'rowheader' + i).data('offset', i % settings.itemsPerPage * tools.getCellSize()).data('id', entry.id)
+                            .append(
+                                $('<span>').addClass('fn-label').addClass(entry.cssClass ? entry.cssClass : '').text(entry.name || '')
+                            );
+
+                        core.setRowClick(element, nameRow, i);
+
+                        ganttLeftPanel.append(nameRow);
 
                         if (entry.desc) {
-                            entries.push(
-                                '<div class="row desc row' + i +
-                                ' " id="RowdId_' + i + dataId + '">' +
-                                '<span class="fn-label' +
-                                (entry.cssClass ? ' ' + entry.cssClass : '') + '">' +
-                                entry.desc +
-                                '</span>' +
-                                '</div>');
+                            var descRow = $('<div>').addClass('row desc').addClass('row' + i).attr('id', 'RowdId_' + i).data('id', entry.id)
+                                .append(
+                                     $('<span>').addClass('fn-label').addClass(entry.cssClass ? entry.cssClass : '').text(entry.desc)
+                                );
+                            core.setRowClick(element, descRow, i);
+
+                            ganttLeftPanel.append(descRow);
                         }
 
                     }
                 });
-                return ganttLeftPanel.append(entries.join(""));
+                return ganttLeftPanel;
             },
 
             // Create and return the data panel element
@@ -1158,6 +1159,38 @@
                     }
                 });
             },
+
+            setRowClick: function(element, row, rowNum) {
+                row.click(function() {
+                    // remove highlight
+                    $(element).find(".fn-gantt .rightPanel .dataPanel .highlight").remove();
+
+                    if(element.highlightedRow === rowNum) {
+                        // currently highlighted
+                        element.highlightedRow = null;
+                        return false;
+                    }
+
+                    // currently no highlight or highlight another line
+                    core.highlightRow(element, rowNum);
+
+                });
+            },
+
+            highlightRow: function(element, rowNum) {
+                var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
+
+                var topEl = $(element).find("#rowheader" + rowNum);
+                if (topEl.length > 0) {
+                    var top = tools.getCellSize() * element.headerRows + topEl.data("offset");
+
+                    var highlight = $('<div>').addClass('highlight').css('top', top);
+                    $dataPanel.append(highlight);
+
+                    element.highlightedRow = rowNum;
+                }
+            },
+
             // **Navigation**
             navigateTo: function (element, val) {
                 var $rightPanel = $(element).find(".fn-gantt .rightPanel");
@@ -1705,6 +1738,7 @@
             this.pageCount = 0;      // Available pages count
             this.rowsOnLastPage = 0; // How many rows on last page
             this.rowsNum = 0;        // Number of total rows
+            this.highlightedRow = null;  // Currnt highlighted row number
             this.hPosition = 0;      // Current position on diagram (Horizontal)
             this.dateStart = null;
             this.dateEnd = null;
