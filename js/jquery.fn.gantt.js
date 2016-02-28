@@ -193,7 +193,9 @@
             // callbacks
             onItemClick: function (data) { return; },
             onAddClick: function (dt, rowId) { return; },
-            onRender: $.noop
+            onRender: $.noop,
+            // extensions
+            highlightRow : true
         };
 
         // read options
@@ -1162,17 +1164,19 @@
 
             setRowClick: function(element, row, rowNum) {
                 row.click(function() {
-                    // remove highlight
-                    $(element).find(".fn-gantt .rightPanel .dataPanel .highlight").remove();
+                    if (settings.highlightRow) {
+                        // remove highlight
+                         $(element).find(".fn-gantt .rightPanel .dataPanel .highlight").remove();
 
-                    if(element.highlightedRow === rowNum) {
-                        // currently highlighted
-                        element.highlightedRow = null;
-                        return false;
+                        if(element.highlightedRow === rowNum) {
+                            // currently highlighted
+                            element.highlightedRow = null;
+                            return false;
+                        }
+
+                        // currently no highlight or highlight another line
+                        core.highlightRow(element, rowNum);
                     }
-
-                    // currently no highlight or highlight another line
-                    core.highlightRow(element, rowNum);
 
                 });
             },
