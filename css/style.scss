@@ -1,0 +1,516 @@
+
+// Variables
+$faint-grey:            #f6f6f6;
+$light-grey:            #ddd;
+$dark-grey:             #484A4D;
+$blue:                  #43bce9;
+$border-radius:         2px;
+
+// Mixin Breakpoint
+@mixin breakpoint($point) {
+    @if $point == gantt {
+         // Change to a value you'd like the Gantt chart to render for
+         // the small screen presentation. 960 is ideal but whatevs.
+        @media (max-width: 960px)  { @content; }
+    }
+}
+
+.gantt {
+    width: 100%;
+    margin: 20px auto;
+    border: 14px solid $light-grey;
+    position: relative;
+    border-radius: $border-radius;
+    box-sizing: border-box;
+    
+    @include breakpoint(gantt) {
+        border: solid 1px $light-grey;
+    }
+    
+    &:after {
+        content: "";
+        visibility: hidden;
+        display: block;
+        height: 0;
+        clear: both;
+    }
+
+}
+
+.fn-gantt {
+    width: 100%;
+    
+    .fn-content {
+        overflow: hidden;
+        position: relative;
+        width: 100%;
+    }
+    
+    .spacer {
+        margin: -2px 0 1px 0;
+        border-bottom: none;
+        background-color: $faint-grey;
+    }
+    
+    /*** Left Panel ***/
+    .leftPanel {
+        float: left;
+        width: 225px;
+        overflow: hidden;
+        border-right: 1px solid $light-grey;
+        position: relative;
+        z-index: 20;
+        
+        @include breakpoint(gantt) {
+            display: none;
+        }
+        
+        .fn-label {
+            display: inline-block;
+            margin: 0 0 0 5px;
+            color: $dark-grey;
+            width: 110px;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
+        }
+        
+        .row0 {
+            border-top: 1px solid $light-grey;
+        }
+        
+        .name,
+        .desc {
+            float: left;
+            height: 23px;
+            margin: 0;
+            border-bottom: 1px solid $light-grey;
+            background-color: $faint-grey;
+        }
+        
+        .name {
+            width: 110px;
+            font-weight: bold;
+        }
+        
+        .desc {
+           width: 115px;
+       }
+       
+       .fn-label {
+           width: 225px;
+       }
+       
+    }
+    
+    /*** Right Panel ***/
+    .rightPanel {
+        overflow: hidden;
+        
+        @include breakpoint(gantt) { 
+            -webkit-overflow-scrolling: touch;
+            overflow-x: scroll;
+        }
+        
+        .month,
+        .year {
+            float: left;
+            overflow: hidden;
+            border-left: 1px solid $light-grey;
+            border-bottom: 1px solid $light-grey;
+            height: 23px;
+            margin: 0 0 0 -1px;
+            background-color: $faint-grey;
+            font-weight: bold;
+            font-size: 11px;
+            color: $dark-grey;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.75);
+            text-align: center;
+        }
+    }
+    
+    .row {
+        float: left;
+        height: 24px;
+        line-height: 24px;
+        margin-left: -1px;
+    }
+    
+    .row.header {
+        margin-left: 0;
+    }
+    
+    .day,
+    .date {
+        overflow: visible;
+        width: 24px;
+        line-height: 24px;
+        text-align: center;
+        border-left: 1px solid $light-grey;
+        border-bottom: 1px solid $light-grey;
+        margin: -1px 0 0 -1px;
+        font-size: 11px;
+        color: $dark-grey;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.75);
+        text-align: center;
+    }
+    
+    .holiday {
+        background-color: #ffd263;
+        height: 23px;
+        margin: 0 0 -1px -1px;
+    }
+    
+    .today {
+        height: 23px;
+        margin: 0 0 -1px -1px;
+        font-weight: bold;
+        text-align: center;
+        position: relative;
+        color: $blue;
+        
+        // Add a vertical line to indicate the current day
+        .fn-label {
+            &::after {
+                content: "";
+                display: block;
+                width: 1px;
+                height: 10000vh;
+                position: absolute;
+                top: 0;
+                left: 0;
+                border-left: solid 2px $blue;
+                z-index: 9;
+            }
+        }
+    }
+    
+    .sa,
+    .sn,
+    .wd {
+        height: 23px;
+        margin: 0 0 0 -1px;
+        text-align: center;
+    }
+    
+    .sa, 
+    .sn {
+        color: #939496;
+        background-color: #f5f5f5;
+        text-align: center;
+    }
+    
+    .wd {
+        background-color: $faint-grey;
+        text-align: center;
+    }
+
+    .fn-gantt-hint {
+        border: 5px solid #edc332;
+        background-color: #fff5d4;
+        padding: 10px;
+        position: absolute;
+        display: none;
+        z-index: 11;
+        border-radius: $border-radius;
+    }
+    
+    .bar {
+        background-color: #D0E4FD;
+        height: 18px;
+        margin: 0px 3px 3px 0px;
+        position: absolute;
+        z-index: 10;
+        text-align: center;
+        box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
+        border-radius: $border-radius;
+    }
+    
+    .bar .fn-label {
+        line-height: 18px;
+        font-weight: bold;
+        white-space: nowrap;
+        width: 100%;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.4);
+        color: #414B57 !important;
+        text-align: center;
+        font-size: 11px;
+    }
+    
+    .ganttRed {
+        background-color: #F9C4E1;
+    }
+    .ganttRed .fn-label {
+        color: #78436D !important;
+    }
+    
+    .ganttGreen {
+        background-color: #D8EDA3;
+    }
+    .ganttGreen .fn-label {
+        color: #778461 !important;
+    }
+    
+    .ganttOrange {
+        background-color: #FCD29A;
+    }
+    .ganttOrange .fn-label {
+        color: #714715 !important;
+    }
+    
+    
+    /*** Lower Navigation ***/
+    .bottom {
+        clear: both;
+        background-color: $faint-grey;
+        width: 100%;
+    }
+    
+    .navigate {
+        border-top: 1px solid $light-grey;
+        padding: 10px 0 10px 225px;
+        
+        @include breakpoint(gantt) {
+            padding: 20px;
+        }
+        
+        .nav-slider-left, 
+        .nav-slider-right {
+            text-align: center;
+            height: 20px;
+            display: inline-block;
+        }
+        
+        .nav-slider-left {
+            float: left;
+        }
+        
+        .nav-slider-right {
+            float: right;
+        }
+        
+        .nav-slider-content {
+            text-align: left;
+            width: 160px;
+            height: 20px;
+            display: inline-block;
+            margin: 0 10px;
+            
+            @include breakpoint(gantt) {
+                display: none;
+            }
+        }
+        
+        .nav-slider-bar, 
+        .nav-slider-button {
+            position: absolute;
+            display: block;
+        }
+        
+        .nav-slider-bar {
+            width: 155px;
+            height: 6px;
+            background-color: #838688;
+            margin: 8px 0 0 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.6) inset;
+            border-radius: $border-radius;
+        }
+        
+        .nav-slider-button {
+            width: 17px;
+            height: 60px;
+            background: url(../img/slider_handle.png) center center no-repeat;
+            left: 0px;
+            top: 0px;
+            margin: -26px 0 0 0;
+            cursor: pointer;
+        }
+        
+        .page-number {
+            display: inline-block;
+            font-size: 10px;
+            height: 20px;
+        }
+        
+        .page-number span {
+            color: #666666;
+            margin: 0 6px;
+            height: 20px;
+            line-height: 20px;
+            display: inline-block;
+        }
+        
+        a:link, 
+        a:visited, 
+        a:active {
+            text-decoration: none;
+        }
+        
+        .nav-link {
+            margin: 0 3px 0 0;
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            font-size: 0px;
+            background: #595959 url(../img/icon_sprite.png) !important;
+            border: 1px solid #454546;
+            cursor: pointer;
+            vertical-align: top;
+            border-radius: $border-radius;
+            box-shadow: 0 1px 0 rgba(255,255,255,0.1) inset, 0 1px 1px rgba(0,0,0,0.2);
+            box-sizing: border-box;
+            
+            @include breakpoint(gantt) {
+                margin: 0;
+                border-radius: 100%;
+                transform: scale(1.3); // Make the tap targets a little bigger ¯\_(ツ)_/¯
+            }
+            
+            &:active {
+                box-shadow: 0 1px 1px rgba(0,0,0,0.25) inset, 0 1px 0 #FFF;
+            }
+            
+        }
+
+        .nav-page-back {
+            background-position: 1px 0 !important;
+            margin: 0;
+        }
+        
+        .nav-page-next {
+            background-position: 1px -16px !important;
+            margin-right: 15px;
+        }
+        
+        .nav-begin {
+            background-position: 1px -112px !important;
+        }
+        
+        .nav-prev-week {
+            background-position: 1px -128px !important;
+            
+            @include breakpoint(gantt) {
+                display: none;
+            }
+        }
+        
+        .nav-prev-day {
+            background-position: 1px -48px !important;
+            
+            @include breakpoint(gantt) {
+                display: none;
+            }
+        }
+        
+        .nav-next-day {
+            background-position: 1px -64px !important;
+            
+            @include breakpoint(gantt) {
+                display: none;
+            }
+        }
+        
+        .nav-next-week {
+            background-position: 1px -160px !important;
+            
+            @include breakpoint(gantt) {
+                display: none;
+            }
+        }
+        
+        .nav-end {
+            background-position: 1px -144px !important;
+        }
+        
+        .nav-zoomOut {
+            background-position: 1px -96px !important;
+            
+            @include breakpoint(gantt) {
+                margin: 0 0 0 30px;
+            }
+        }
+        
+        .nav-zoomIn {
+            background-position: 1px -80px !important;
+            margin-left: 15px;
+            
+            @include breakpoint(gantt) {
+                margin-left: 0;
+            }
+        }
+        
+        .nav-now {
+            background-position: 1px -32px !important;
+        }
+
+    }
+    
+    .nav-slider {
+        height: 20px;
+        display: inline-block;
+        
+        @include breakpoint(gantt) {
+            display: block;
+        }
+        
+        .nav-page-next {
+            margin-right: 5px;
+            
+            @include breakpoint(gantt) {
+                margin-right: 0;
+            }
+        }
+        
+        .nav-now {
+            margin-right: 5px;
+            
+            @include breakpoint(gantt) {
+                margin-right: 0;
+                position: absolute;
+                left: calc(50% - 10px);
+            }
+        }
+    }
+    
+    .fn-gantt-loader {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        left: 0;
+        top: 0;
+        background: rgba(0,0,0,0.75);
+        cursor: wait;
+        z-index: 30;
+    }
+    .fn-gantt-loader-spinner span {
+        position: absolute;
+        margin: auto;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        text-align: center;
+        height: 1em;
+        line-height: 1em;
+        color: #fff;
+        font-size: 1em;
+        font-weight: bold;
+    }
+    
+    .row:after {
+        clear: both;
+    }
+    
+    .dataPanel {
+        margin-left: 0px;
+        border-right: 1px solid $light-grey;
+        background-image: url(../img/grid.png);
+        background-repeat: repeat;
+        background-position: 24px 24px;
+        position: relative;
+    }
+
+}
