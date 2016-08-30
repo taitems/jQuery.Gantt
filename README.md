@@ -1,6 +1,7 @@
-[Demo and Documentation](http://taitems.github.com/jQuery.Gantt/)
-Added RTL support
+[Demo and Documentation](https://ulmanb.github.io/jQuery.Gantt/)
 ==============
+
+Added RTL(right to left) support, currently only for "hours" and "days" scale.
 
 jQuery Gantt Chart is a simple chart that implements gantt functionality as
 a jQuery component.
