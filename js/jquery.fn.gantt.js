@@ -190,6 +190,7 @@
             scale: "days",
             maxScale: "months",
             minScale: "hours",
+            rtl: false,
             // callbacks
             onItemClick: function (data) { return; },
             onAddClick: function (dt, rowId) { return; },
@@ -329,6 +330,18 @@
                     if (i >= element.pageNum * settings.itemsPerPage &&
                         i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
                         var dataId = ('id' in entry) ? '" data-id="' + entry.id : '';
+
+                        if (settings.rtl && entry.desc) {
+                          entries.push(
+                              '<div class="row desc row' + i +
+                              ' " id="RowdId_' + i + dataId + '">' +
+                              '<span class="fn-label' +
+                              (entry.cssClass ? ' ' + entry.cssClass : '') + '">' +
+                              entry.desc +
+                              '</span>' +
+                              '</div>');
+                        }
+
                         entries.push(
                             '<div class="row name row' + i +
                             (entry.desc ? '' : (' fn-wide '+dataId)) +
@@ -340,7 +353,7 @@
                             '</span>' +
                             '</div>');
 
-                        if (entry.desc) {
+                        if (!settings.rtl && entry.desc) {
                             entries.push(
                                 '<div class="row desc row' + i +
                                 ' " id="RowdId_' + i + dataId + '">' +
@@ -451,17 +464,46 @@
                 var rday, dayClass;
                 var dataPanel;
 
+                // Create helper functions for RTL
+                function moveIndex(i) {
+                    if(settings.rtl)
+                      return i - 1;
+                    else
+                      return i + 1;
+                }
+
+                function checkLoopCondition(i, endi){
+                    if (settings.rtl) {
+                      return i >= endi;
+                    } else {
+                      return i < endi;
+                    }
+                }
+
                 // Setup the headings based on the chosen `settings.scale`
                 switch (settings.scale) {
                 // **Hours**
                 case "hours":
                     range = tools.parseTimeRange(element.dateStart, element.dateEnd, element.scaleStep);
 
+                    // LTR as default
+                    var startIndex = 0;
+                    var endIndex = range.length;
+                    var lastArrIndex = endIndex - 1;
+
                     year = range[0].getFullYear();
                     month = range[0].getMonth();
                     day = range[0];
 
-                    for (i = 0, len = range.length; i < len; i++) {
+                    if(settings.rtl) {
+                      year = range[lastArrIndex].getFullYear();
+                      month = range[lastArrIndex].getMonth();
+                      day = range[lastArrIndex];
+                      startIndex = lastArrIndex;
+                      endIndex = 0;
+                    }
+
+                    for (var i = startIndex; checkLoopCondition(i, endIndex); i = moveIndex(i)) {
                         rday = range[i];
 
                         // Fill years
@@ -717,7 +759,18 @@
                     month = dateBefore.getMonth();
                     //day = dateBefore; // <- never used?
 
-                    for (i = 0, len = range.length; i < len; i++) {
+// RTL ! ----
+                    var indexStart = 0;
+                    var runTo = range.length;
+
+                    if(settings.rtl) {
+                      // If rtl - > run from end to start
+                      var indexStart = range.length - 1;
+                      var runTo = 0;
+                    }
+// RTL ---- !
+
+                    for (var i = indexStart; checkLoopCondition(i, runTo); i = moveIndex(i)) {
                         rday = range[i];
 
                         // Fill years
@@ -1068,7 +1121,11 @@
                                 // find row
                                 topEl = $(element).find("#rowheader" + i);
                                 top = tools.getCellSize() * 5 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+                                if(settings.rtl)
+                                  _bar.css({ 'top': top, 'right': Math.floor(cFrom) - 2});
+                                else
+                                  _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
                                 datapanel.append(_bar);
                                 break;
@@ -1141,7 +1198,11 @@
                                 // find row
                                 topEl = $(element).find("#rowheader" + i);
                                 top = tools.getCellSize() * 4 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+                                if(settings.rtl)
+                                  _bar.css({ 'top': top, 'right': Math.floor(cFrom) - 2 });
+                                else
+                                  _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
 
                                 datapanel.append(_bar);
                             }
@@ -1179,6 +1240,7 @@
                     $dataPanel.animate({ "margin-left": "-" + mLeft }, "fast", shift);
                     break;
                 case "now":
+                // TODO Enhance to work with RTL
                     if (!element.scrollNavigation.canScroll || !$dataPanel.find(".today").length) {
                         return false;
                     }
