@@ -1,7 +1,8 @@
 [Demo and Documentation](http://taitems.github.com/jQuery.Gantt/)
+Added RTL support
 ==============
 
-jQuery Gantt Chart is a simple chart that implements gantt functionality as 
+jQuery Gantt Chart is a simple chart that implements gantt functionality as
 a jQuery component.
 
 It's able to:
