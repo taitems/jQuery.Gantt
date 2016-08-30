@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <title>jQuery.Gantt - Test Suite 01</title>
         <meta charset="utf-8">
         <meta http-equiv="X-UA-Compatible" content="IE=Edge;chrome=IE8">
-        <link href="../css/style.css" type="text/css" rel="stylesheet">
+        <link href="../css/style_rtl.css" type="text/css" rel="stylesheet">
         <style type="text/css">
             body {
                 font-family: Helvetica, Arial, sans-serif;
@@ -81,7 +81,13 @@
                 }],
                 scale: "hours",
                 minScale: "hours",
-                navigate: "scroll"
+                navigate: "scroll",
+                maxScale: "days",
+                rtl: true,
+                waitText: "..אנא המתן",
+                dow: 	["א", "ב", "ג", "ד", "ה", "ו", "ש"],
+                months: 	["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני",
+                          "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"]
             });
 
         });
