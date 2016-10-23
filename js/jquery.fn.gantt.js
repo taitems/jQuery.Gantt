@@ -302,6 +302,7 @@
                 if (settings.scrollToToday) {
                     core.navigateTo(element, 'now');
                     core.scrollPanel(element, 0);
+                    settings.scrollToToday = false;
                 // or, scroll the grid to the left most date in the panel
                 } else {
                     if (element.hPosition !== 0) {
@@ -313,6 +314,7 @@
                         }
                         $dataPanel.css({ "margin-left": element.hPosition });
                         element.scrollNavigation.panelMargin = element.hPosition;
+                        core.synchronizeScroller(element);
                     }
                     core.repositionLabel(element);
                 }
@@ -1223,11 +1225,10 @@
                     curMarg = $dataPanel.css("margin-left").replace("px", "");
                     val = $dataPanel.find(".today").offset().left - $dataPanel.offset().left;
                     val *= -1;
-                    if (val > 0) {
-                        val = 0;
-                    } else if (val < maxLeft) {
-                        val = maxLeft;
-                    }
+
+                    val = (val < 0 ? val : 0);
+                    val = (val > maxLeft ? val : maxLeft);
+
                     $dataPanel.animate({ "margin-left": val }, "fast", shift);
                     element.scrollNavigation.panelMargin = val;
                     break;
@@ -1235,9 +1236,11 @@
                     maxLeft = (dataPanelWidth - rightPanelWidth) * -1;
                     curMarg = $dataPanel.css("margin-left").replace("px", "");
                     val = parseInt(curMarg, 10) + val;
-                    if (val <= 0 && val >= maxLeft) {
-                        $dataPanel.animate({ "margin-left": val }, "fast", shift);
-                    }
+                    
+                    val = (val < 0 ? val : 0);
+                    val = (val > maxLeft ? val : maxLeft);
+                    
+                    $dataPanel.animate({ "margin-left": val }, "fast", shift);
                     element.scrollNavigation.panelMargin = val;
                 }
                 core.synchronizeScroller(element);
