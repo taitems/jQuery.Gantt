@@ -1163,7 +1163,8 @@
 
                 var topEl = $(element).find("#rowheader" + rowNum);
                 if (topEl.length > 0) {
-                    var top = tools.getCellSize() * element.headerRows + topEl.data("offset");
+                    var headerRows = scaleGroupSttings[element.scaleGroup].headerRows;
+                    var top = tools.getCellSize() * headerRows + topEl.data("offset");
 
                     var highlight = $('<div>').addClass('highlight').css('top', top);
                     $dataPanel.append(highlight);
