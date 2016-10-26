@@ -89,6 +89,9 @@
                   <option value="months">months</option>
                   <option value="weeks" selected>weeks</option>
                   <option value="days">days</option>
+                  <option value="hours12">hours12</option>
+                  <option value="hours6">hours6</option>
+                  <option value="hours3">hours3</option>
                   <option value="hours">hours</option>
                 </select>
               </div>
@@ -98,6 +101,9 @@
                   <option value="months">months</option>
                   <option value="weeks">weeks</option>
                   <option value="days">days</option>
+                  <option value="hours12">hours12</option>
+                  <option value="hours6">hours6</option>
+                  <option value="hours3">hours3</option>
                   <option value="hours" selected>hours</option>
                 </select>
               </div>
@@ -107,12 +113,22 @@
                   <option value="months" selected>months</option>
                   <option value="weeks">weeks</option>
                   <option value="days">days</option>
+                  <option value="hours12">hours12</option>
+                  <option value="hours6">hours6</option>
+                  <option value="hours3">hours3</option>
                   <option value="hours">hours</option>
                 </select>
               </div>
               <div class="form-group">
                 <label for="scrollToToday">scrollToToday:</label>
                 <select name="scrollToToday" id="scrollToToday" class="form-control">
+                  <option value="true" selected>true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="highlightRow">highlightRow:</label>
+                <select name="highlightRow" id="highlightRow" class="form-control">
                   <option value="true" selected>true</option>
                   <option value="false">false</option>
                 </select>
@@ -563,6 +579,7 @@ values: [
             var minScale = $('#minScale').val();
             var maxScale = $('#maxScale').val();
             var scrollToToday = $('#scrollToToday').val() === "true" ? true : false;
+            var highlightRow = $('#highlightRow').val() === "true" ? true : false;
 
             $(".gantt").gantt({
                 source: [{
@@ -661,7 +678,7 @@ values: [
                         console.log("chart rendered");
                     }
                 },
-                highlightRow : true
+                highlightRow : highlightRow // true
             });
 
         }
