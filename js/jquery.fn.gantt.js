@@ -100,14 +100,14 @@
 
     // `getRepDate` returns the milliseconds since the epoch for a given date
     // depending on the active scale
-    Date.prototype.getRepDate = function (scale) {
-        switch (scale) {
-        case "hours":
-            return this.getTime();
+    Date.prototype.getRepDate = function (scaleGroup) {
+        switch (scaleGroup) {
         case "weeks":
             return this.getDayForWeek().getTime();
         case "months":
             return new Date(this.getFullYear(), this.getMonth(), 1).getTime();
+        case "hours":
+            /* falls through */
         case "days":
             /* falls through */
         default:
@@ -169,7 +169,24 @@
 
     $.fn.gantt = function (options) {
 
-        var scales = ["hours", "days", "weeks", "months"];
+        var scales = ["hours", "hours3", "hours6", "hours12", "days", "weeks", "months"];
+        var scaleSettings = {
+            "hours": {scaleGroup: "hours", scaleStep: 1},
+            "hours3": {scaleGroup: "hours", scaleStep: 3},
+            "hours6": {scaleGroup: "hours", scaleStep: 6},
+            "hours12": {scaleGroup: "hours", scaleStep: 12},
+            "days": {scaleGroup: "days"},
+            "weeks": {scaleGroup: "weeks"},
+            "months": {scaleGroup: "months"},
+        };
+
+        var scaleGroupSttings = {
+            "hours": {headerRows: 5},
+            "days": {headerRows: 4},
+            "weeks": {headerRows: 3},
+            "months": {headerRows: 2},
+        };
+
         //Default settings
         var settings = {
             source: [],
@@ -200,6 +217,13 @@
 
         // read options
         $.extend(settings, options);
+
+        settings.scale = ($.inArray(settings.scale, scales) >= 0) ? settings.scale : "days";
+        settings.maxScale = ($.inArray(settings.maxScale, scales) >= 0) ? settings.maxScale : scales[scales.length - 1];
+        settings.minScale = ($.inArray(settings.minScale, scales) >= 0) ? settings.minScale : scales[0];
+
+        settings.maxScale = ($.inArray(settings.scale, scales) <= $.inArray(settings.maxScale, scales) ? settings.maxScale : settings.scale); 
+        settings.minScale = ($.inArray(settings.scale, scales) >= $.inArray(settings.minScale, scales) ? settings.minScale : settings.scale); 
 
         // can't use cookie if don't have `$.cookie`
         settings.useCookie = settings.useCookie && $.isFunction($.cookie);
@@ -278,9 +302,7 @@
 
                 $(element).empty().append(element.gantt);
 
-                element.scrollNavigation.panelMargin = parseInt($dataPanel.css("margin-left").replace("px", ""), 10);
-                element.scrollNavigation.panelMaxPos = ($dataPanel.width() - $rightPanel.width());
-
+                element.scrollNavigation.panelMaxPos = ($dataPanel.width() - $rightPanel.width()) * -1;
                 element.scrollNavigation.canScroll = ($dataPanel.width() > $rightPanel.width());
 
                 core.markNow(element);
@@ -319,6 +341,9 @@
                     core.repositionLabel(element);
                 }
 
+                core.switchScrollButton(element);
+
+
                 $dataPanel.css({ height: $leftPanel.height() });
                 core.waitToggle(element);
                 settings.onRender();
@@ -327,9 +352,10 @@
             // Create and return the left panel with labels
             leftPanel: function (element) {
                 /* Left panel */
+                var headerRows = scaleGroupSttings[element.scaleGroup].headerRows;
                 var ganttLeftPanel = $('<div class="leftPanel"/>')
                     .append($('<div class="row spacer"/>')
-                    .css("height", tools.getCellSize() * element.headerRows)
+                    .css("height", tools.getCellSize() * headerRows)
                     .css("width", "100%"));
 
                 $.each(element.data, function (i, entry) {
@@ -378,21 +404,8 @@
                     var corrX/* <- never used? */, corrY;
                     var leftpanel = $(element).find(".fn-gantt .leftPanel");
                     var datapanel = $(element).find(".fn-gantt .dataPanel");
-                    switch (settings.scale) {
-                    case "months":
-                        corrY = tools.getCellSize();
-                        break;
-                    case "hours":
-                        corrY = tools.getCellSize() * 4;
-                        break;
-                    case "days":
-                        corrY = tools.getCellSize() * 3;
-                        break;
-                    case "weeks":
-                        /* falls through */
-                    default:
-                        corrY = tools.getCellSize() * 2;
-                    }
+
+                    corrY = tools.getCellSize() * (scaleGroupSttings[element.scaleGroup].headerRows -1);
 
                     /* Adjust, so get middle of elm
                     corrY -= Math.floor(tools.getCellSize() / 2);
@@ -456,11 +469,12 @@
                 var rday, dayClass;
                 var dataPanel;
 
-                // Setup the headings based on the chosen `settings.scale`
-                switch (settings.scale) {
+                // Setup the headings based on scaleGroup
+                switch (element.scaleGroup) {
                 // **Hours**
                 case "hours":
-                    range = tools.parseTimeRange(element.dateStart, element.dateEnd, element.scaleStep);
+                    var scaleStep = scaleSettings[settings.scale].scaleStep;
+                    range = tools.parseTimeRange(element.dateStart, element.dateEnd, scaleStep);
 
                     year = range[0].getFullYear();
                     month = range[0].getMonth();
@@ -531,7 +545,7 @@
                             '" id="dh-' +
                             rday.getTime() +
                             '" data-offset="' + i * tools.getCellSize() +
-                            '" data-repdate="' + rday.getRepDate(settings.scale) +
+                            '" data-repdate="' + rday.getRepDate(element.scaleGroup) +
                             '"><div class="fn-label">' +
                             rday.getHours() +
                             '</div></div>');
@@ -631,7 +645,7 @@
                             '<div class="row day wd"' +
                             ' id="' + rday.getWeekId() +
                             '" data-offset="' + i * tools.getCellSize() +
-                            '" data-repdate="' + rday.getRepDate(settings.scale) + '">' +
+                            '" data-repdate="' + rday.getRepDate(element.scaleGroup) + '">' +
                             '<div class="fn-label">' + week + '</div></div>');
                     }
 
@@ -684,7 +698,7 @@
                         monthArr.push(
                             '<div class="row day wd" id="dh-' + tools.genId(rday) +
                             '" data-offset="' + i * tools.getCellSize() +
-                            '" data-repdate="' + rday.getRepDate(settings.scale) + '">' +
+                            '" data-repdate="' + rday.getRepDate(element.scaleGroup) + '">' +
                             (1 + rday.getMonth()) + '</div>');
                     }
 
@@ -761,12 +775,12 @@
                             '<div class="row date ' + dayClass + '"' +
                             ' id="dh-' + tools.genId(rday) +
                             '" data-offset="' + i * tools.getCellSize() +
-                            '" data-repdate="' + rday.getRepDate(settings.scale) + '">' +
+                            '" data-repdate="' + rday.getRepDate(element.scaleGroup) + '">' +
                             '<div class="fn-label">' + rday.getDate() + '</div></div>');
                         dowArr.push(
                             '<div class="row day ' + dayClass + '"' +
                             ' id="dw-' + tools.genId(rday) +
-                            '" data-repdate="' + rday.getRepDate(settings.scale) + '">' +
+                            '" data-repdate="' + rday.getRepDate(element.scaleGroup) + '">' +
                             '<div class="fn-label">' + settings.dow[day] + '</div></div>');
                     } //for
 
@@ -808,6 +822,7 @@
                         .append($('<div class="nav-slider" />')
                             .append($('<div class="nav-slider-left" />')
                                 .append($('<button type="button" class="nav-link nav-page-back"/>')
+                                    .prop("disabled", element.pageNum === 0)
                                     .html('&lt;')
                                     .click(function () {
                                         core.navigatePage(element, -1);
@@ -816,6 +831,7 @@
                                         .append($('<span/>')
                                             .html(element.pageNum + 1 + ' / ' + element.pageCount)))
                                 .append($('<button type="button" class="nav-link nav-page-next"/>')
+                                    .prop("disabled", element.pageNum + 1 === element.pageCount)
                                     .html('&gt;')
                                     .click(function () {
                                         core.navigatePage(element, 1);
@@ -828,28 +844,12 @@
                                 .append($('<button type="button" class="nav-link nav-prev-week"/>')
                                     .html('&lt;&lt;')
                                     .click(function () {
-                                        if (settings.scale === 'hours') {
-                                            core.navigateTo(element, tools.getCellSize() * 8);
-                                        } else if (settings.scale === 'days') {
-                                            core.navigateTo(element, tools.getCellSize() * 30);
-                                        } else if (settings.scale === 'weeks') {
-                                            core.navigateTo(element, tools.getCellSize() * 12);
-                                        } else if (settings.scale === 'months') {
-                                            core.navigateTo(element, tools.getCellSize() * 6);
-                                        }
+                                        core.navigateTo(element, tools.getCellSize() * 7);
                                     }))
                                 .append($('<button type="button" class="nav-link nav-prev-day"/>')
                                     .html('&lt;')
                                     .click(function () {
-                                        if (settings.scale === 'hours') {
-                                            core.navigateTo(element, tools.getCellSize() * 4);
-                                        } else if (settings.scale === 'days') {
-                                            core.navigateTo(element, tools.getCellSize() * 7);
-                                        } else if (settings.scale === 'weeks') {
-                                            core.navigateTo(element, tools.getCellSize() * 4);
-                                        } else if (settings.scale === 'months') {
-                                            core.navigateTo(element, tools.getCellSize() * 3);
-                                        }
+                                        core.navigateTo(element, tools.getCellSize());
                                     })))
                             .append($('<div class="nav-slider-content" />')
                                     .append($('<div class="nav-slider-bar" />')
@@ -871,35 +871,21 @@
                                 .append($('<button type="button" class="nav-link nav-next-day"/>')
                                     .html('&gt;')
                                     .click(function () {
-                                        if (settings.scale === 'hours') {
-                                            core.navigateTo(element, tools.getCellSize() * -4);
-                                        } else if (settings.scale === 'days') {
-                                            core.navigateTo(element, tools.getCellSize() * -7);
-                                        } else if (settings.scale === 'weeks') {
-                                            core.navigateTo(element, tools.getCellSize() * -4);
-                                        } else if (settings.scale === 'months') {
-                                            core.navigateTo(element, tools.getCellSize() * -3);
-                                        }
+                                        core.navigateTo(element, tools.getCellSize() * -1);
                                     }))
                             .append($('<button type="button" class="nav-link nav-next-week"/>')
                                     .html('&gt;&gt;')
                                     .click(function () {
-                                        if (settings.scale === 'hours') {
-                                            core.navigateTo(element, tools.getCellSize() * -8);
-                                        } else if (settings.scale === 'days') {
-                                            core.navigateTo(element, tools.getCellSize() * -30);
-                                        } else if (settings.scale === 'weeks') {
-                                            core.navigateTo(element, tools.getCellSize() * -12);
-                                        } else if (settings.scale === 'months') {
-                                            core.navigateTo(element, tools.getCellSize() * -6);
-                                        }
+                                        core.navigateTo(element, tools.getCellSize() * -7);
                                     }))
                                 .append($('<button type="button" class="nav-link nav-zoomIn"/>')
+                                    .prop("disabled", settings.scale == settings.minScale)
                                     .html('&#43;')
                                     .click(function () {
                                         core.zoomInOut(element, -1);
                                     }))
                                 .append($('<button type="button" class="nav-link nav-zoomOut"/>')
+                                    .prop("disabled", settings.scale == settings.maxScale)
                                     .html('&#45;')
                                     .click(function () {
                                         core.zoomInOut(element, 1);
@@ -913,6 +899,7 @@
                 } else {
                     ganttNavigate = $('<div class="navigate" />')
                         .append($('<button type="button" class="nav-link nav-page-back"/>')
+                            .prop("disabled", element.pageNum === 0)
                             .html('&lt;')
                             .click(function () {
                                 core.navigatePage(element, -1);
@@ -921,6 +908,7 @@
                                 .append($('<span/>')
                                     .html(element.pageNum + 1 + ' / ' + element.pageCount)))
                         .append($('<button type="button" class="nav-link nav-page-next"/>')
+                            .prop("disabled", element.pageNum + 1 === element.pageCount)
                             .html('&gt;')
                             .click(function () {
                                 core.navigatePage(element, 1);
@@ -961,11 +949,13 @@
                                 core.navigateTo(element, 'end');
                             }))
                         .append($('<button type="button" class="nav-link nav-zoomIn"/>')
+                            .prop("disabled", settings.scale == settings.minScale)
                             .html('&#43;')
                             .click(function () {
                                 core.zoomInOut(element, -1);
                             }))
                         .append($('<button type="button" class="nav-link nav-zoomOut"/>')
+                            .prop("disabled", settings.scale == settings.maxScale)
                             .html('&#45;')
                             .click(function () {
                                 core.zoomInOut(element, 1);
@@ -1016,7 +1006,8 @@
             // current day/week/month (depending on the current scale)
             markNow: function (element) {
                 var cd = new Date().setHours(0, 0, 0, 0);
-                switch (settings.scale) {
+
+                switch (element.scaleGroup) {
                 case "weeks":
                     $(element).find(':findweek("' + cd + '")').removeClass('wd').addClass('today');
                     break;
@@ -1030,6 +1021,10 @@
                 default:
                     $(element).find(':findday("' + cd + '")').removeClass('wd').addClass('today');
                 }
+
+                var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
+                $(element).find(".fn-gantt .bottom .navigate button.nav-now").prop("disabled", !element.scrollNavigation.canScroll || !$dataPanel.find(".today").length);
+
             },
 
             // **Fill the Chart**
@@ -1057,25 +1052,20 @@
                             var _bar;
                             var from, to, cFrom, cTo, dFrom, dTo, dl;
                             var topEl, top;
-                            switch (settings.scale) {
+                            var headerRows = scaleGroupSttings[element.scaleGroup].headerRows;
+                            
+                            switch (element.scaleGroup) {
                             // **Hourly data**
                             case "hours":
-                                dFrom = tools.genId(tools.dateDeserialize(day.from), element.scaleStep);
+                                var scaleStep = scaleSettings[settings.scale].scaleStep;
+                                dFrom = tools.genId(tools.dateDeserialize(day.from), scaleStep);
                                 from = $(element).find('#dh-' + dFrom);
-                                dTo = tools.genId(tools.dateDeserialize(day.to), element.scaleStep);
+                                dTo = tools.genId(tools.dateDeserialize(day.to), scaleStep);
                                 to = $(element).find('#dh-' + dTo);
                                 cFrom = from.data("offset");
                                 cTo = to.data("offset");
                                 dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 5 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                                 break;
 
                             // **Weekly data**
@@ -1089,14 +1079,6 @@
                                 cTo = to.data("offset");
                                 dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 3 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                                 break;
 
                             // **Monthly data**
@@ -1122,14 +1104,6 @@
                                 cTo = to.data("offset");
                                 dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
 
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 2 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                                 break;
 
                             // **Days**
@@ -1141,15 +1115,16 @@
                                 from = $(element).find("#dh-" + dFrom);
                                 cFrom = from.data("offset");
                                 dl = Math.floor((dTo - dFrom) / UTC_DAY_IN_MS) + 1;
-                                _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
-
-                                // find row
-                                topEl = $(element).find("#rowheader" + i);
-                                top = tools.getCellSize() * 4 + 2 + topEl.data("offset");
-                                _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
-
-                                datapanel.append(_bar);
                             }
+
+                            _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
+
+                            // find row
+                            topEl = $(element).find("#rowheader" + i);
+                            top = tools.getCellSize() * headerRows + 2 + topEl.data("offset");
+                            _bar.css({ 'top': top, 'left': Math.floor(cFrom) });
+
+                            datapanel.append(_bar);
 
                             var $l = _bar.find(".fn-label");
                             if ($l && _bar.length) {
@@ -1199,50 +1174,45 @@
 
             // **Navigation**
             navigateTo: function (element, val) {
-                var $rightPanel = $(element).find(".fn-gantt .rightPanel");
-                var $dataPanel = $rightPanel.find(".dataPanel");
-                var rightPanelWidth = $rightPanel.width();
-                var dataPanelWidth = $dataPanel.width();
+                if (!element.scrollNavigation.canScroll) {
+                    return;
+                }
+                var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
                 var shift = function () {
-                  core.repositionLabel(element);
+                    core.switchScrollButton(element);
+                    core.repositionLabel(element);
                 };
-                var maxLeft, curMarg;
+                var panelMargin;
                 switch (val) {
                 case "begin":
-                    $dataPanel.animate({ "margin-left": "0px" }, "fast", shift);
-                    element.scrollNavigation.panelMargin = 0;
+                    panelMargin = 0;
                     break;
                 case "end":
-                    var mLeft = dataPanelWidth - rightPanelWidth;
-                    element.scrollNavigation.panelMargin = mLeft * -1;
-                    $dataPanel.animate({ "margin-left": "-" + mLeft }, "fast", shift);
+                    panelMargin = element.scrollNavigation.panelMaxPos;
                     break;
                 case "now":
-                    if (!element.scrollNavigation.canScroll || !$dataPanel.find(".today").length) {
+                    if (!$dataPanel.find(".today").length) {
                         return false;
                     }
-                    maxLeft = (dataPanelWidth - rightPanelWidth) * -1;
-                    curMarg = $dataPanel.css("margin-left").replace("px", "");
-                    val = $dataPanel.find(".today").offset().left - $dataPanel.offset().left;
-                    val *= -1;
 
-                    val = (val < 0 ? val : 0);
-                    val = (val > maxLeft ? val : maxLeft);
+                    panelMargin = $dataPanel.find(".today").offset().left - $dataPanel.offset().left;
+                    panelMargin *= -1;
 
-                    $dataPanel.animate({ "margin-left": val }, "fast", shift);
-                    element.scrollNavigation.panelMargin = val;
+                    panelMargin = (panelMargin < 0 ? panelMargin : 0);
+                    panelMargin = (panelMargin > element.scrollNavigation.panelMaxPos ? panelMargin : element.scrollNavigation.panelMaxPos);
+
                     break;
                 default:
-                    maxLeft = (dataPanelWidth - rightPanelWidth) * -1;
-                    curMarg = $dataPanel.css("margin-left").replace("px", "");
-                    val = parseInt(curMarg, 10) + val;
-                    
-                    val = (val < 0 ? val : 0);
-                    val = (val > maxLeft ? val : maxLeft);
-                    
-                    $dataPanel.animate({ "margin-left": val }, "fast", shift);
-                    element.scrollNavigation.panelMargin = val;
+                    panelMargin = parseInt($dataPanel.css("margin-left").replace("px", ""), 10);
+                    panelMargin += val;
+
+                    panelMargin = (panelMargin < 0 ? panelMargin : 0);
+                    panelMargin = (panelMargin > element.scrollNavigation.panelMaxPos ? panelMargin : element.scrollNavigation.panelMaxPos);
+
                 }
+                
+                $dataPanel.animate({ "margin-left": panelMargin }, "fast", shift);
+
                 core.synchronizeScroller(element);
             },
 
@@ -1265,46 +1235,19 @@
 
                     var zoomIn = (val < 0);
 
-                    var scaleSt = element.scaleStep + val * 3;
-                    scaleSt = scaleSt <= 1 ? 1 : scaleSt === 4 ? 3 : scaleSt;
-                    var scale = settings.scale;
-                    var headerRows = element.headerRows;
-                    if (settings.scale === "hours" && scaleSt >= 13) {
-                        scale = "days";
-                        headerRows = 4;
-                        scaleSt = 13;
-                    } else if (settings.scale === "days" && zoomIn) {
-                        scale = "hours";
-                        headerRows = 5;
-                        scaleSt = 12;
-                    } else if (settings.scale === "days" && !zoomIn) {
-                        scale = "weeks";
-                        headerRows = 3;
-                        scaleSt = 13;
-                    } else if (settings.scale === "weeks" && !zoomIn) {
-                        scale = "months";
-                        headerRows = 2;
-                        scaleSt = 14;
-                    } else if (settings.scale === "weeks" && zoomIn) {
-                        scale = "days";
-                        headerRows = 4;
-                        scaleSt = 13;
-                    } else if (settings.scale === "months" && zoomIn) {
-                        scale = "weeks";
-                        headerRows = 3;
-                        scaleSt = 13;
-                    }
-
-                    // do nothing if attempting to zoom past max/min
-                    if ((zoomIn && $.inArray(scale, scales) < $.inArray(settings.minScale, scales)) ||
-                        (!zoomIn && $.inArray(scale, scales) > $.inArray(settings.maxScale, scales))) {
-                        core.init(element);
+                    var index = $.inArray(settings.scale, scales);
+                    if ((zoomIn && index <=  $.inArray(settings.minScale, scales)) ||
+                         (!zoomIn && index >=  $.inArray(settings.maxScale, scales))) {
+                        // do nothing if attempting to zoom past max/min
+                        core.waitToggle(element);
                         return;
                     }
 
-                    element.scaleStep = scaleSt;
-                    settings.scale = scale;
-                    element.headerRows = headerRows;
+                    index = zoomIn ? index - 1 : index + 1;
+
+                    settings.scale = scales[index];
+                    element.scaleGroup = scaleSettings[settings.scale].scaleGroup;
+
                     var $rightPanel = $(element).find(".fn-gantt .rightPanel");
                     var $dataPanel = $rightPanel.find(".dataPanel");
                     element.hPosition = $dataPanel.css("margin-left").replace("px", "");
@@ -1365,26 +1308,21 @@
                 var bWidth = $sliderBar.width();
                 var wButton = $sliderBarBtn.width();
 
-                var pos, mLeft;
+                var pos;
 
                 if ((e.pageX >= bPos.left) && (e.pageX <= bPos.left + bWidth)) {
                     pos = e.pageX - bPos.left;
                     pos = pos - wButton / 2;
                     $sliderBarBtn.css("left", pos);
 
-                    mLeft = $dataPanel.width() - $rightPanel.width();
+                    var panelMargin = pos * element.scrollNavigation.panelMaxPos / bWidth;
 
-                    var pPos = pos * mLeft / bWidth * -1;
-                    if (pPos >= 0) {
-                        $dataPanel.css("margin-left", "0px");
-                        element.scrollNavigation.panelMargin = 0;
-                    } else if (pos >= bWidth - (wButton * 1)) {
-                        $dataPanel.css("margin-left", mLeft * -1);
-                        element.scrollNavigation.panelMargin = mLeft * -1;
-                    } else {
-                        $dataPanel.css("margin-left", pPos);
-                        element.scrollNavigation.panelMargin = pPos;
-                    }
+                    panelMargin = (panelMargin <= 0 ? panelMargin : 0);
+                    panelMargin = (panelMargin >= element.scrollNavigation.panelMaxPos ? panelMargin : element.scrollNavigation.panelMaxPos);
+
+                    $dataPanel.css("margin-left", panelMargin);
+
+                    core.switchScrollButton(element);
                     clearTimeout(element.scrollNavigation.repositionDelay);
                     element.scrollNavigation.repositionDelay = setTimeout(core.repositionLabel, 5, element);
                 }
@@ -1395,17 +1333,16 @@
                 if (!element.scrollNavigation.canScroll) {
                     return false;
                 }
-                var _panelMargin = parseInt(element.scrollNavigation.panelMargin, 10) + delta;
-                if (_panelMargin > 0) {
-                    element.scrollNavigation.panelMargin = 0;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin);
-                } else if (_panelMargin < element.scrollNavigation.panelMaxPos * -1) {
-                    element.scrollNavigation.panelMargin = element.scrollNavigation.panelMaxPos * -1;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin);
-                } else {
-                    element.scrollNavigation.panelMargin = _panelMargin;
-                    $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin);
-                }
+                var $dataPanel = $(element).find(".fn-gantt .dataPanel");
+                var panelMargin = parseInt($dataPanel.css("margin-left").replace("px", ""), 10);
+                panelMargin += delta;
+
+                panelMargin = (panelMargin <= 0 ? panelMargin : 0);
+                panelMargin = (panelMargin >= element.scrollNavigation.panelMaxPos ? panelMargin : element.scrollNavigation.panelMaxPos);
+
+                $dataPanel.css("margin-left", panelMargin);
+
+                core.switchScrollButton(element);
                 core.synchronizeScroller(element);
             },
 
@@ -1444,26 +1381,43 @@
                     if (settings.useCookie) {
                         $.cookie(settings.cookieKey + "ScrollPos", $dataPanel.css("margin-left").replace("px", ""));
                     }
-                }, 500);
+                }, 200);
+            },
+
+            switchScrollButton: function(element) {
+                // enable all scroll button
+                // navigation
+                var $navigate = $(element).find(".fn-gantt .bottom .navigate");
+                $navigate.find('button.nav-begin, button.nav-prev-week, button.nav-prev-day, button.nav-next-day, button.nav-next-week, button.nav-end')
+                    .prop("disabled", false);
+
+                // Margin
+                var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
+                var panelMargin = parseInt($dataPanel.css("margin-left").replace("px", ""), 10);
+                
+                // prevButton
+                $navigate.find('button.nav-begin, button.nav-prev-week, button.nav-prev-day').prop("disabled", !element.scrollNavigation.canScroll || panelMargin >= 0);
+
+                // nextButton
+                $navigate.find('button.nav-end, button.nav-next-week, button.nav-next-day').prop("disabled", !element.scrollNavigation.canScroll || panelMargin <= element.scrollNavigation.panelMaxPos);
+
+
             },
 
             // waitToggle
             waitToggle: function (element, showCallback) {
                 if ( $.isFunction(showCallback) ) {
                     var $elt = $(element);
-                    var eo = $elt.offset();
-                    var ew = $elt.outerWidth();
-                    var eh = $elt.outerHeight();
 
                     if (!element.loader) {
                         element.loader = $('<div class="fn-gantt-loader">' +
                         '<div class="fn-gantt-loader-spinner"><span>' + settings.waitText + '</span></div></div>');
                     }
                     $elt.append(element.loader);
-                    setTimeout(showCallback, 500);
+                    setTimeout(showCallback, 200);
 
                 } else if (element.loader) {
-                  element.loader.detach();
+                    element.loader.detach();
                 }
             }
         };
@@ -1482,10 +1436,11 @@
                 });
                 maxDate = maxDate || new Date();
                 var bd;
-                switch (settings.scale) {
+                switch (element.scaleGroup) {
                 case "hours":
-                    maxDate.setHours(Math.ceil((maxDate.getHours()) / element.scaleStep) * element.scaleStep);
-                    maxDate.setHours(maxDate.getHours() + element.scaleStep * 3);
+                    var scaleStep = scaleSettings[settings.scale].scaleStep;
+                    maxDate.setHours(Math.ceil((maxDate.getHours()) / scaleStep) * scaleStep);
+                    maxDate.setHours(maxDate.getHours() + scaleStep * 3);
                     break;
                 case "weeks":
                     // wtf is happening here?
@@ -1518,10 +1473,11 @@
                     });
                 });
                 minDate = minDate || new Date();
-                switch (settings.scale) {
+                switch (element.scaleGroup) {
                 case "hours":
-                    minDate.setHours(Math.floor((minDate.getHours()) / element.scaleStep) * element.scaleStep);
-                    minDate.setHours(minDate.getHours() - element.scaleStep * 3);
+                    var scaleStep = scaleSettings[settings.scale].scaleStep;
+                    minDate.setHours(Math.floor((minDate.getHours()) / scaleStep) * scaleStep);
+                    minDate.setHours(minDate.getHours() - scaleStep * 3);
                     break;
                 case "weeks":
                     // wtf is happening here?
@@ -1562,7 +1518,6 @@
                 var current = new Date(from);
                 var end = new Date(to);
 
-                // GR: Fix begin
                 current.setHours(0, 0, 0, 0);
 
                 end.setMilliseconds(0);
@@ -1572,7 +1527,6 @@
                     end.setHours(0);
                     end.setTime(end.getTime() + UTC_DAY_IN_MS);
                 }
-                // GR: Fix end
 
                 var ret = [];
                 var i = 0;
@@ -1596,9 +1550,7 @@
                     }
                     */
 
-                    // GR Fix Begin
                     current = ktkGetNextDate(dayStartTime, scaleStep);
-                    // GR Fix End
 
                     i++;
                 }
@@ -1652,7 +1604,9 @@
                 if ( $.isNumeric(t) ) {
                     t = new Date(t);
                 }
-                switch (settings.scale) {
+
+                var scaleGroup = scaleSettings[settings.scale].scaleGroup;
+                switch (scaleGroup) {
                 case "hours":
                     var hour = t.getHours();
                     if (arguments.length >= 2) {
@@ -1751,7 +1705,6 @@
             this.dateEnd = null;
             this.scrollClicked = false;
             this.scaleOldWidth = null;
-            this.headerRows = null;
 
             // Update cookie with current scale
             if (settings.useCookie) {
@@ -1763,35 +1716,12 @@
                 }
             }
 
-            switch (settings.scale) {
-            //case "hours":
-            //    this.headerRows = 5;
-            //    this.scaleStep = 8;
-            //    break;
-            case "hours":
-                this.headerRows = 5;
-                this.scaleStep = 1;
-                break;
-            case "weeks":
-                this.headerRows = 3;
-                this.scaleStep = 13;
-                break;
-            case "months":
-                this.headerRows = 2;
-                this.scaleStep = 14;
-                break;
-            case "days":
-                /* falls through */
-            default:
-                this.headerRows = 4;
-                this.scaleStep = 13;
-            }
+            this.scaleGroup = scaleSettings[settings.scale].scaleGroup;
 
             this.scrollNavigation = {
                 panelMouseDown: false,
                 scrollerMouseDown: false,
                 mouseX: null,
-                panelMargin: 0,
                 repositionDelay: 0,
                 panelMaxPos: 0,
                 canScroll: true
