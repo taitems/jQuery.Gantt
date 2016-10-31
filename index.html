@@ -133,6 +133,13 @@
                   <option value="false">false</option>
                 </select>
               </div>
+              <div class="form-group">
+                <label for="snapToGrid">snapToGrid:</label>
+                <select name="snapToGrid" id="snapToGrid" class="form-control">
+                  <option value="true" selected>true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
               <button type="submit" class="btn btn-primary">Refresh</button>
             </form>
 
@@ -580,6 +587,7 @@ values: [
             var maxScale = $('#maxScale').val();
             var scrollToToday = $('#scrollToToday').val() === "true" ? true : false;
             var highlightRow = $('#highlightRow').val() === "true" ? true : false;
+            var snapToGrid = $('#snapToGrid').val() === "true" ? true : false;
 
             $(".gantt").gantt({
                 source: [{
@@ -622,7 +630,7 @@ values: [
                     desc: "Development",
                     values: [{
                         from: "/Date(1452929200000)/",
-                        to: "/Date(1451929200000)/",
+                        to: "/Date(1453929200000)/",
                         label: "Development",
                         customClass: "ganttGreen"
                     }]
@@ -678,7 +686,8 @@ values: [
                         console.log("chart rendered");
                     }
                 },
-                highlightRow : highlightRow // true
+                highlightRow : highlightRow, // true
+                snapToGrid : snapToGrid // true
             });
 
         }

@@ -10,76 +10,6 @@
 
     var UTC_DAY_IN_MS = 24 * 60 * 60 * 1000;
 
-    // custom selector `:findday` used to match on specified day in ms.
-    //
-    // The selector is passed a date in ms and elements are added to the
-    // selection filter if the element date matches, as determined by the
-    // id attribute containing a parsable date in ms.
-    function findDay(elt, text) {
-        var cd = new Date(parseInt(text, 10));
-        cd.setHours(0, 0, 0, 0);
-        var id = $(elt).attr("id") || "";
-        var si = id.indexOf("-") + 1;
-        var ed = new Date(parseInt(id.substring(si, id.length), 10));
-        ed.setHours(0, 0, 0, 0);
-        return cd.getTime() === ed.getTime();
-    }
-    $.expr[':'].findday = $.expr.createPseudo ?
-        $.expr.createPseudo(function(text) {
-            return function(elt) {
-                return findDay(elt, text);
-            };
-        }) :
-        function(elt, i, match) {
-            return findDay(elt, match[3]);
-        };
-
-    // custom selector `:findweek` used to match on specified week in ms.
-    function findWeek(elt, text) {
-        var cd = new Date(parseInt(text, 10));
-        var y = cd.getFullYear();
-        var w = cd.getWeekOfYear();
-        var m = cd.getMonth();
-        if (m === 11 && w === 1) {
-            y++;
-        } else if (!m && w > 51) {
-            y--;
-        }
-        cd = y + "-" + w;
-        var id = $(elt).attr("id") || "";
-        var si = id.indexOf("-") + 1;
-        var ed = id.substring(si, id.length);
-        return cd === ed;
-    }
-    $.expr[':'].findweek = $.expr.createPseudo ?
-        $.expr.createPseudo(function(text) {
-            return function(elt) {
-                return findWeek(elt, text);
-            };
-        }) :
-        function(elt, i, match) {
-            return findWeek(elt, match[3]);
-        };
-
-    // custom selector `:findmonth` used to match on specified month in ms.
-    function findMonth(elt, text) {
-        var cd = new Date(parseInt(text, 10));
-        cd = cd.getFullYear() + "-" + cd.getMonth();
-        var id = $(elt).attr("id") || "";
-        var si = id.indexOf("-") + 1;
-        var ed = id.substring(si, id.length);
-        return cd === ed;
-    }
-    $.expr[':'].findmonth = $.expr.createPseudo ?
-        $.expr.createPseudo(function(text) {
-            return function(elt) {
-                return findMonth(elt, text);
-            };
-        }) :
-        function(elt, i, match) {
-            return findMonth(elt, match[3]);
-        };
-
     // Date prototype helpers
     // ======================
 
@@ -95,7 +25,7 @@
         } else if (!m && w > 51) {
             y--;
         }
-        return 'dh-' + y + "-" + w;
+        return y + "-" + w;
     };
 
     // `getRepDate` returns the milliseconds since the epoch for a given date
@@ -175,15 +105,15 @@
             "hours3": {scaleGroup: "hours", scaleStep: 3},
             "hours6": {scaleGroup: "hours", scaleStep: 6},
             "hours12": {scaleGroup: "hours", scaleStep: 12},
-            "days": {scaleGroup: "days"},
-            "weeks": {scaleGroup: "weeks"},
-            "months": {scaleGroup: "months"},
+            "days": {scaleGroup: "days", scaleStep: 1},
+            "weeks": {scaleGroup: "weeks", scaleStep: 1},
+            "months": {scaleGroup: "months", scaleStep: 1},
         };
 
         var scaleGroupSttings = {
-            "hours": {headerRows: 5},
-            "days": {headerRows: 4},
-            "weeks": {headerRows: 3},
+            "hours": {headerRows: 5, cellStep : 60 * 60 * 1000},
+            "days": {headerRows: 4, cellStep : 24 * 60 * 60 * 1000},
+            "weeks": {headerRows: 3, cellStep : 7 * 24 * 60 * 60 * 1000},
             "months": {headerRows: 2},
         };
 
@@ -212,7 +142,8 @@
             onAddClick: function (dt, rowId) { return; },
             onRender: $.noop,
             // extensions
-            highlightRow : true
+            highlightRow : true,
+            snapToGrid : true
         };
 
         // read options
@@ -342,7 +273,6 @@
                 }
 
                 core.switchScrollButton(element);
-
 
                 $dataPanel.css({ height: $leftPanel.height() });
                 core.waitToggle(element);
@@ -643,7 +573,7 @@
                         // Fill weeks
                         dayArr.push(
                             '<div class="row day wd"' +
-                            ' id="' + rday.getWeekId() +
+                            ' id="dh-' + rday.getWeekId() +
                             '" data-offset="' + i * tools.getCellSize() +
                             '" data-repdate="' + rday.getRepDate(element.scaleGroup) + '">' +
                             '<div class="fn-label">' + week + '</div></div>');
@@ -969,10 +899,11 @@
             createProgressBar: function (days, label, desc, classNames, dataObj) {
                 label = label || "";
                 var cellWidth = tools.getCellSize();
+                var minCellWidth = Math.floor(cellWidth / 4);
                 var barMarg = tools.getProgressBarMargin() || 0;
                 var bar = $('<div class="bar"><div class="fn-label">' + label + '</div></div>')
                         .css({
-                            width: ((cellWidth * days) - barMarg) + 2
+                            width: (Math.max(Math.floor(cellWidth * days), minCellWidth) - barMarg) + 2
                         })
                         .data("dataObj", dataObj);
                 if (desc) {
@@ -1007,20 +938,9 @@
             markNow: function (element) {
                 var cd = new Date().setHours(0, 0, 0, 0);
 
-                switch (element.scaleGroup) {
-                case "weeks":
-                    $(element).find(':findweek("' + cd + '")').removeClass('wd').addClass('today');
-                    break;
-                case "months":
-                    $(element).find(':findmonth("' + cd + '")').removeClass('wd').addClass('today');
-                    break;
-                case "days":
-                    /* falls through */
-                case "hours":
-                    /* falls through */
-                default:
-                    $(element).find(':findday("' + cd + '")').removeClass('wd').addClass('today');
-                }
+                var scaleStep = scaleSettings[settings.scale].scaleStep;
+                var now = $(element).find('#dh-' + tools.genId(cd, scaleStep));
+                now.removeClass('wd').addClass('today');
 
                 var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
                 $(element).find(".fn-gantt .bottom .navigate button.nav-now").prop("disabled", !element.scrollNavigation.canScroll || !$dataPanel.find(".today").length);
@@ -1050,71 +970,64 @@
 
                         $.each(entry.values, function (j, day) {
                             var _bar;
-                            var from, to, cFrom, cTo, dFrom, dTo, dl;
+                            var from, to, cFrom, cTo, dFrom, dTo, eFrom, eTo, dl;
                             var topEl, top;
                             var headerRows = scaleGroupSttings[element.scaleGroup].headerRows;
+                            var scaleStep = scaleSettings[settings.scale].scaleStep;
+                            var cellStep = scaleStep * scaleGroupSttings[element.scaleGroup].cellStep;
+
+                            dFrom = tools.dateDeserialize(day.from);
+                            dTo = tools.dateDeserialize(day.to);
                             
+                            from = $(element).find('#dh-' + tools.genId(dFrom, scaleStep));
+                            to = $(element).find('#dh-' + tools.genId(dTo, scaleStep));
+                            cFrom = from.data("offset");
+                            cTo = to.data("offset");
+
                             switch (element.scaleGroup) {
+
                             // **Hourly data**
                             case "hours":
-                                var scaleStep = scaleSettings[settings.scale].scaleStep;
-                                dFrom = tools.genId(tools.dateDeserialize(day.from), scaleStep);
-                                from = $(element).find('#dh-' + dFrom);
-                                dTo = tools.genId(tools.dateDeserialize(day.to), scaleStep);
-                                to = $(element).find('#dh-' + dTo);
-                                cFrom = from.data("offset");
-                                cTo = to.data("offset");
-                                dl = Math.floor((cTo - cFrom) / tools.getCellSize()) + 1;
-
+                                var hour = Math.floor(dFrom.getHours() / scaleStep) * scaleStep;
+                                eFrom = dFrom - (new Date(dFrom.getFullYear(), dFrom.getMonth(), dFrom.getDate(), hour)).getTime();
+                                hour = Math.floor(dTo.getHours() / scaleStep) * scaleStep;
+                                eTo = dTo - (new Date(dTo.getFullYear(), dTo.getMonth(), dTo.getDate(), hour)).getTime();
                                 break;
-
                             // **Weekly data**
                             case "weeks":
-                                dFrom = tools.dateDeserialize(day.from);
-                                dTo = tools.dateDeserialize(day.to);
-
-                                from = $(element).find("#" + dFrom.getWeekId());
-                                cFrom = from.data("offset");
-                                to = $(element).find("#" + dTo.getWeekId());
-                                cTo = to.data("offset");
-                                dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
-
+                                eFrom = dFrom - dFrom.getDayForWeek().getTime();
+                                eTo = dTo - dTo.getDayForWeek().getTime();
                                 break;
-
                             // **Monthly data**
                             case "months":
-                                dFrom = tools.dateDeserialize(day.from);
-                                dTo = tools.dateDeserialize(day.to);
-
-                                if (dFrom.getDate() <= 3 && dFrom.getMonth() === 0) {
-                                    dFrom.setDate(dFrom.getDate() + 4);
-                                }
-
-                                if (dFrom.getDate() <= 3 && dFrom.getMonth() === 0) {
-                                    dFrom.setDate(dFrom.getDate() + 4);
-                                }
-
-                                if (dTo.getDate() <= 3 && dTo.getMonth() === 0) {
-                                    dTo.setDate(dTo.getDate() + 4);
-                                }
-
-                                from = $(element).find("#dh-" + tools.genId(dFrom));
-                                cFrom = from.data("offset");
-                                to = $(element).find("#dh-" + tools.genId(dTo));
-                                cTo = to.data("offset");
-                                dl = Math.round((cTo - cFrom) / tools.getCellSize()) + 1;
-
+                                eFrom = dFrom - (new Date(dFrom.getFullYear(), dFrom.getMonth(), 1)).getTime();
+                                eTo = dTo - (new Date(dTo.getFullYear(), dTo.getMonth(), 1)).getTime();
                                 break;
-
                             // **Days**
                             case "days":
                                 /* falls through */
                             default:
-                                dFrom = tools.genId(tools.dateDeserialize(day.from));
-                                dTo = tools.genId(tools.dateDeserialize(day.to));
-                                from = $(element).find("#dh-" + dFrom);
-                                cFrom = from.data("offset");
-                                dl = Math.floor((dTo - dFrom) / UTC_DAY_IN_MS) + 1;
+                                eFrom = dFrom - (new Date(dFrom.getFullYear(), dFrom.getMonth(), dFrom.getDate())).getTime();
+                                eTo = dTo - (new Date(dTo.getFullYear(), dTo.getMonth(), dTo.getDate())).getTime();
+                            }
+
+                            if (settings.snapToGrid){
+                                dl = (cTo - cFrom) / tools.getCellSize();
+                                if (eTo !== 0) {
+                                    dl++;
+                                }
+                            } else {
+                                if (element.scaleGroup == "months") {
+                                    cellStep = (new Date(dFrom.getFullYear(), dFrom.getMonth() + 1, 0)).getDate() * UTC_DAY_IN_MS;
+                                }
+                                cFrom += (eFrom % cellStep) / (cellStep * 1.0) * tools.getCellSize();
+                                if (element.scaleGroup == "months") {
+                                    cellStep = (new Date(dTo.getFullYear(), dTo.getMonth() + 1, 0)).getDate() * UTC_DAY_IN_MS;
+                                }
+                                cTo += (eTo % cellStep) / (cellStep * 1.0) * tools.getCellSize();
+                                dl = (cTo - cFrom) / tools.getCellSize();
+
+                                cFrom = Math.round(cFrom);
                             }
 
                             _bar = core.createProgressBar(dl, day.label, day.desc, day.customClass, day.dataObj);
@@ -1615,15 +1528,7 @@
                     }
                     return (new Date(t.getFullYear(), t.getMonth(), t.getDate(), hour)).getTime();
                 case "weeks":
-                    var y = t.getFullYear();
-                    var w = t.getWeekOfYear();
-                    var m = t.getMonth();
-                    if (m === 11 && w === 1) {
-                        y++;
-                    } else if (!m && w > 51) {
-                        y--;
-                    }
-                    return y + "-" + w;
+                    return t.getWeekId();
                 case "months":
                     return t.getFullYear() + "-" + t.getMonth();
                 case "days":
