@@ -123,6 +123,7 @@
             holidays: [],
             // paging
             itemsPerPage: 7,
+            itemsPerPageSelect: [],
             // localisation
             dow: ["S", "M", "T", "W", "T", "F", "S"],
             months: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
@@ -751,21 +752,7 @@
                     ganttNavigate = $('<div class="navigate" />')
                         .append($('<div class="nav-slider" />')
                             .append($('<div class="nav-slider-left" />')
-                                .append($('<button type="button" class="nav-link nav-page-back"/>')
-                                    .prop("disabled", element.pageNum === 0)
-                                    .html('&lt;')
-                                    .click(function () {
-                                        core.navigatePage(element, -1);
-                                    }))
-                                .append($('<div class="page-number"/>')
-                                        .append($('<span/>')
-                                            .html(element.pageNum + 1 + ' / ' + element.pageCount)))
-                                .append($('<button type="button" class="nav-link nav-page-next"/>')
-                                    .prop("disabled", element.pageNum + 1 === element.pageCount)
-                                    .html('&gt;')
-                                    .click(function () {
-                                        core.navigatePage(element, 1);
-                                    }))
+                                .append(core.pageNavigation(element))
                                 .append($('<button type="button" class="nav-link nav-now"/>')
                                     .html('&#9679;')
                                     .click(function () {
@@ -774,12 +761,12 @@
                                 .append($('<button type="button" class="nav-link nav-prev-week"/>')
                                     .html('&lt;&lt;')
                                     .click(function () {
-                                        core.navigateTo(element, tools.getCellSize() * 7);
+                                        core.navigateTo(element, tools.getCellSize() * 8);
                                     }))
                                 .append($('<button type="button" class="nav-link nav-prev-day"/>')
                                     .html('&lt;')
                                     .click(function () {
-                                        core.navigateTo(element, tools.getCellSize());
+                                        core.navigateTo(element, tools.getCellSize() * 4);
                                     })))
                             .append($('<div class="nav-slider-content" />')
                                     .append($('<div class="nav-slider-bar" />')
@@ -801,25 +788,14 @@
                                 .append($('<button type="button" class="nav-link nav-next-day"/>')
                                     .html('&gt;')
                                     .click(function () {
-                                        core.navigateTo(element, tools.getCellSize() * -1);
+                                        core.navigateTo(element, tools.getCellSize() * -4);
                                     }))
-                            .append($('<button type="button" class="nav-link nav-next-week"/>')
+                                .append($('<button type="button" class="nav-link nav-next-week"/>')
                                     .html('&gt;&gt;')
                                     .click(function () {
-                                        core.navigateTo(element, tools.getCellSize() * -7);
+                                        core.navigateTo(element, tools.getCellSize() * -8);
                                     }))
-                                .append($('<button type="button" class="nav-link nav-zoomIn"/>')
-                                    .prop("disabled", settings.scale == settings.minScale)
-                                    .html('&#43;')
-                                    .click(function () {
-                                        core.zoomInOut(element, -1);
-                                    }))
-                                .append($('<button type="button" class="nav-link nav-zoomOut"/>')
-                                    .prop("disabled", settings.scale == settings.maxScale)
-                                    .html('&#45;')
-                                    .click(function () {
-                                        core.zoomInOut(element, 1);
-                                    }))
+                                .append(core.zoomNavigate(element))
                                     )
                                 );
                     $(document).mouseup(function () {
@@ -828,21 +804,7 @@
                 // Button navigation is provided by setting `settings.navigation='buttons'`
                 } else {
                     ganttNavigate = $('<div class="navigate" />')
-                        .append($('<button type="button" class="nav-link nav-page-back"/>')
-                            .prop("disabled", element.pageNum === 0)
-                            .html('&lt;')
-                            .click(function () {
-                                core.navigatePage(element, -1);
-                            }))
-                        .append($('<div class="page-number"/>')
-                                .append($('<span/>')
-                                    .html(element.pageNum + 1 + ' / ' + element.pageCount)))
-                        .append($('<button type="button" class="nav-link nav-page-next"/>')
-                            .prop("disabled", element.pageNum + 1 === element.pageCount)
-                            .html('&gt;')
-                            .click(function () {
-                                core.navigatePage(element, 1);
-                            }))
+                        .append(core.pageNavigation(element))
                         .append($('<button type="button" class="nav-link nav-begin"/>')
                             .html('&#124;&lt;')
                             .click(function () {
@@ -851,12 +813,12 @@
                         .append($('<button type="button" class="nav-link nav-prev-week"/>')
                             .html('&lt;&lt;')
                             .click(function () {
-                                core.navigateTo(element, tools.getCellSize() * 7);
+                                core.navigateTo(element, tools.getCellSize() * 8);
                             }))
                         .append($('<button type="button" class="nav-link nav-prev-day"/>')
                             .html('&lt;')
                             .click(function () {
-                                core.navigateTo(element, tools.getCellSize());
+                                core.navigateTo(element, tools.getCellSize() * 4);
                             }))
                         .append($('<button type="button" class="nav-link nav-now"/>')
                             .html('&#9679;')
@@ -866,32 +828,77 @@
                         .append($('<button type="button" class="nav-link nav-next-day"/>')
                             .html('&gt;')
                             .click(function () {
-                                core.navigateTo(element, tools.getCellSize() * -1);
+                                core.navigateTo(element, tools.getCellSize() * -4);
                             }))
                         .append($('<button type="button" class="nav-link nav-next-week"/>')
                             .html('&gt;&gt;')
                             .click(function () {
-                                core.navigateTo(element, tools.getCellSize() * -7);
+                                core.navigateTo(element, tools.getCellSize() * -8);
                             }))
                         .append($('<button type="button" class="nav-link nav-end"/>')
                             .html('&gt;&#124;')
                             .click(function () {
                                 core.navigateTo(element, 'end');
                             }))
-                        .append($('<button type="button" class="nav-link nav-zoomIn"/>')
-                            .prop("disabled", settings.scale == settings.minScale)
-                            .html('&#43;')
-                            .click(function () {
-                                core.zoomInOut(element, -1);
-                            }))
-                        .append($('<button type="button" class="nav-link nav-zoomOut"/>')
-                            .prop("disabled", settings.scale == settings.maxScale)
-                            .html('&#45;')
-                            .click(function () {
-                                core.zoomInOut(element, 1);
-                            }));
+                        .append(core.zoomNavigate(element));
                 }
                 return $('<div class="bottom"></div>').append(ganttNavigate);
+            },
+
+            pageNavigation : function(element) {
+                return $('<button type="button" class="nav-link nav-page-back"/>')
+                    .prop("disabled", element.pageNum === 0)
+                    .html('&lt;')
+                    .click(function () {
+                        core.navigatePage(element, -1);
+                    })
+                .add($('<div class="page-number"/>')
+                        .append($('<span/>')
+                            .html(element.pageNum + 1 + ' / ' + element.pageCount)))
+                .add($('<button type="button" class="nav-link nav-page-next"/>')
+                    .prop("disabled", element.pageNum + 1 === element.pageCount)
+                    .html('&gt;')
+                    .click(function () {
+                        core.navigatePage(element, 1);
+                    }))
+                .add(settings.itemsPerPageSelect.length <= 0 ? '' : core.getSelect(settings.itemsPerPageSelect)
+                    .addClass('nav-page-select')
+                    .change(function () {
+                        var previous = settings.itemsPerPage;
+                        settings.itemsPerPage = Number($(this).val());
+                        // new page num. keep highlitedRow, if exists. other wise keep fist
+                        var firstColumn = element.pageNum  * previous;
+                        var lastColumn = Math.min((element.pageNum+1) * previous - 1, element.rowsNum - 1);
+                        var targetRow = element.highlightedRow && element.highlightedRow >= firstColumn && element.highlightedRow <= lastColumn ?
+                            element.highlightedRow : firstColumn;
+                        element.pageNum = Math.floor(targetRow / settings.itemsPerPage);
+                        core.refresh(element);
+                    }));
+            },
+
+            zoomNavigate: function (element) {
+                return $('<button type="button" class="nav-link nav-zoomIn"/>')
+                    .prop("disabled", settings.scale == settings.minScale)
+                    .html('&#43;')
+                    .click(function () {
+                        core.zoomInOut(element, -1);
+                    })
+                .add($('<button type="button" class="nav-link nav-zoomOut"/>')
+                    .prop("disabled", settings.scale == settings.maxScale)
+                    .html('&#45;')
+                    .click(function () {
+                        core.zoomInOut(element, 1);
+                    }));
+
+            },
+
+            getSelect: function (optionArr) {
+                var selectTag = $('<select>');
+                $.each(optionArr, function(i, value) {
+                    selectTag.append($('<option>').text(value).val(value).prop('selected', value === settings.itemsPerPage));
+                });
+
+                return selectTag;
             },
 
             // **Progress Bar**
@@ -1141,6 +1148,10 @@
                         core.init(element);
                     });
                 }
+            },
+
+            refresh: function(element) {
+                core.create(element);
             },
 
             // Change zoom level

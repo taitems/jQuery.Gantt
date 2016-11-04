@@ -206,6 +206,17 @@ $(".selector").gantt({
                     </tr>
                     <tr>
                         <td>
+                            <code>itemsPerPageSelect</code>
+                        </td>
+                        <td>
+                            <code>[]</code>
+                        </td>
+                        <td>
+                            Array of numbers
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             <code>months</code>
                         </td>
                         <td>
@@ -673,6 +684,7 @@ values: [
                 maxScale: maxScale, // "months"
                 minScale: minScale, // "hours"
                 itemsPerPage: itemsPerPage, // 10
+                itemsPerPageSelect: [5, 10, 20],
                 useCookie: true,
                 scrollToToday: scrollToToday, // true
                 onItemClick: function(data) {
