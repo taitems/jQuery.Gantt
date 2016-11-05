@@ -84,6 +84,13 @@
                 </select>
               </div>
               <div class="form-group">
+                <label for="navigationPosition">navigationPosition:</label>
+                <select name="navigationPosition" id="navigationPosition" class="form-control">
+                  <option value="top">top</option>
+                  <option value="bottom" selected>bottom</option>
+                </select>
+              </div>
+              <div class="form-group">
                 <label for="scale">scale:</label>
                 <select name="scale" id="scale" class="form-control">
                   <option value="months">months</option>
@@ -257,6 +264,17 @@ $(".selector").gantt({
                         </td>
                         <td>
                             string ("buttons", "scroll")
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>navigationPosition</code>
+                        </td>
+                        <td>
+                            <code>"bottom"</code>
+                        </td>
+                        <td>
+                            string ("top", "bottom")
                         </td>
                     </tr>
                     <tr>
@@ -593,6 +611,7 @@ values: [
         function makeGanttChart() {
             var itemsPerPage = parseInt($('#itemsPerPage').val(), 10);
             var navigate = $('#navigate').val();
+            var navigationPosition = $('#navigationPosition').val();
             var scale = $('#scale').val();
             var minScale = $('#minScale').val();
             var maxScale = $('#maxScale').val();
@@ -680,6 +699,7 @@ values: [
                     }]
                 }],
                 navigate: navigate, // "scroll"
+                navigationPosition: navigationPosition, // bottom
                 scale: scale, // "weeks"
                 maxScale: maxScale, // "months"
                 minScale: minScale, // "hours"

@@ -249,6 +249,7 @@
 }
 .fn-gantt .navigate {
     border-top: 1px solid #DDD;
+    border-bottom: 1px solid #DDD;
     padding: 10px 0 10px 225px;
 }
 

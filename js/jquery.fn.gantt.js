@@ -130,6 +130,7 @@
             waitText: "Please wait...",
             // navigation
             navigate: "buttons",
+            navigationPosition : "bottom",
             scrollToToday: true,
             // cookie options
             useCookie: false,
@@ -226,8 +227,12 @@
                 var mLeft, hPos;
 
                 content.append($rightPanel);
-                content.append(core.navigation(element));
 
+                if (settings.navigationPosition === "top") {
+                    content.prepend(core.navigation(element));
+                } else {
+                    content.append(core.navigation(element));
+                }
                 var $dataPanel = $rightPanel.find(".dataPanel");
 
                 element.gantt = $('<div class="fn-gantt" />').append(content);
