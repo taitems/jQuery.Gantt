@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <title>jQuery.Gantt</title>
@@ -71,6 +71,84 @@
 
             <div class="gantt"></div>
 
+            <form class="form-inline" id="ganttControl">
+              <div class="form-group">
+                <label for="itemsPerPage">itemsPerPage:</label>
+                <input type="number" class="form-control" id="itemsPerPage" value="10">
+              </div>
+              <div class="form-group">
+                <label for="navigate">navigate:</label>
+                <select name="navigate" id="navigate" class="form-control">
+                  <option value="buttons">buttons</option>
+                  <option value="scroll" selected>scroll</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="navigationPosition">navigationPosition:</label>
+                <select name="navigationPosition" id="navigationPosition" class="form-control">
+                  <option value="top">top</option>
+                  <option value="bottom" selected>bottom</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="scale">scale:</label>
+                <select name="scale" id="scale" class="form-control">
+                  <option value="months">months</option>
+                  <option value="weeks" selected>weeks</option>
+                  <option value="days">days</option>
+                  <option value="hours12">hours12</option>
+                  <option value="hours6">hours6</option>
+                  <option value="hours3">hours3</option>
+                  <option value="hours">hours</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="minScale">minScale:</label>
+                <select name="minScale" id="minScale" class="form-control">
+                  <option value="months">months</option>
+                  <option value="weeks">weeks</option>
+                  <option value="days">days</option>
+                  <option value="hours12">hours12</option>
+                  <option value="hours6">hours6</option>
+                  <option value="hours3">hours3</option>
+                  <option value="hours" selected>hours</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="maxScale">maxScale:</label>
+                <select name="maxScale" id="maxScale" class="form-control">
+                  <option value="months" selected>months</option>
+                  <option value="weeks">weeks</option>
+                  <option value="days">days</option>
+                  <option value="hours12">hours12</option>
+                  <option value="hours6">hours6</option>
+                  <option value="hours3">hours3</option>
+                  <option value="hours">hours</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="scrollToToday">scrollToToday:</label>
+                <select name="scrollToToday" id="scrollToToday" class="form-control">
+                  <option value="true" selected>true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="highlightRow">highlightRow:</label>
+                <select name="highlightRow" id="highlightRow" class="form-control">
+                  <option value="true" selected>true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="snapToGrid">snapToGrid:</label>
+                <select name="snapToGrid" id="snapToGrid" class="form-control">
+                  <option value="true" selected>true</option>
+                  <option value="false">false</option>
+                </select>
+              </div>
+              <button type="submit" class="btn btn-primary">Refresh</button>
+            </form>
 
 
             <h2 id="config">
@@ -135,6 +213,17 @@ $(".selector").gantt({
                     </tr>
                     <tr>
                         <td>
+                            <code>itemsPerPageSelect</code>
+                        </td>
+                        <td>
+                            <code>[]</code>
+                        </td>
+                        <td>
+                            Array of numbers
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             <code>months</code>
                         </td>
                         <td>
@@ -179,13 +268,24 @@ $(".selector").gantt({
                     </tr>
                     <tr>
                         <td>
+                            <code>navigationPosition</code>
+                        </td>
+                        <td>
+                            <code>"bottom"</code>
+                        </td>
+                        <td>
+                            string ("top", "bottom")
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
                             <code>scale</code>
                         </td>
                         <td>
                             <code>"days"</code>
                         </td>
                         <td>
-                            string ("months", "weeks", "days", "hours")
+                            string ("months", "weeks", "days", "hours12", "hours6", "hours3", "hours")
                         </td>
                     </tr>
                     <tr>
@@ -196,7 +296,7 @@ $(".selector").gantt({
                             <code>"months"</code>
                         </td>
                         <td>
-                            string ("months", "weeks", "days", "hours")
+                            string ("months", "weeks", "days", "hours12", "hours6", "hours3", "hours")
                         </td>
                     </tr>
                     <tr>
@@ -207,7 +307,7 @@ $(".selector").gantt({
                             <code>"hours"</code>
                         </td>
                         <td>
-                            string ("months", "weeks", "days", "hours")
+                            string ("months", "weeks", "days", "hours12", "hours6", "hours3", "hours")
                         </td>
                     </tr>
                     <tr>
@@ -266,6 +366,14 @@ $(".selector").gantt({
                     <tr>
                         <td>
                             <code>scrollToToday</code></td>
+                        <td>
+                            <code>true</code></td>
+                        <td>
+                            Boolean</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>highlightRow</code></td>
                         <td>
                             <code>true</code></td>
                         <td>
@@ -482,102 +590,11 @@ values: [
 
             "use strict";
 
-            $(".gantt").gantt({
-                source: [{
-                    name: "Sprint 0",
-                    desc: "Analysis",
-                    values: [{
-                        from: "/Date(1320192000000)/",
-                        to: "/Date(1322401600000)/",
-                        label: "Requirement Gathering",
-                        customClass: "ganttRed"
-                    }]
-                },{
-                    desc: "Scoping",
-                    values: [{
-                        from: "/Date(1322611200000)/",
-                        to: "/Date(1323302400000)/",
-                        label: "Scoping",
-                        customClass: "ganttRed"
-                    }]
-                },{
-                    name: "Sprint 1",
-                    desc: "Development",
-                    values: [{
-                        from: "/Date(1323802400000)/",
-                        to: "/Date(1325685200000)/",
-                        label: "Development",
-                        customClass: "ganttGreen"
-                    }]
-                },{
-                    name: " ",
-                    desc: "Showcasing",
-                    values: [{
-                        from: "/Date(1325685200000)/",
-                        to: "/Date(1325695200000)/",
-                        label: "Showcasing",
-                        customClass: "ganttBlue"
-                    }]
-                },{
-                    name: "Sprint 2",
-                    desc: "Development",
-                    values: [{
-                        from: "/Date(1326785200000)/",
-                        to: "/Date(1325785200000)/",
-                        label: "Development",
-                        customClass: "ganttGreen"
-                    }]
-                },{
-                    desc: "Showcasing",
-                    values: [{
-                        from: "/Date(1328785200000)/",
-                        to: "/Date(1328905200000)/",
-                        label: "Showcasing",
-                        customClass: "ganttBlue"
-                    }]
-                },{
-                    name: "Release Stage",
-                    desc: "Training",
-                    values: [{
-                        from: "/Date(1330011200000)/",
-                        to: "/Date(1336611200000)/",
-                        label: "Training",
-                        customClass: "ganttOrange"
-                    }]
-                },{
-                    desc: "Deployment",
-                    values: [{
-                        from: "/Date(1336611200000)/",
-                        to: "/Date(1338711200000)/",
-                        label: "Deployment",
-                        customClass: "ganttOrange"
-                    }]
-                },{
-                    desc: "Warranty Period",
-                    values: [{
-                        from: "/Date(1336611200000)/",
-                        to: "/Date(1349711200000)/",
-                        label: "Warranty Period",
-                        customClass: "ganttOrange"
-                    }]
-                }],
-                navigate: "scroll",
-                scale: "weeks",
-                maxScale: "months",
-                minScale: "hours",
-                itemsPerPage: 10,
-                useCookie: true,
-                onItemClick: function(data) {
-                    alert("Item clicked - show some details");
-                },
-                onAddClick: function(dt, rowId) {
-                    alert("Empty space clicked - add an item!");
-                },
-                onRender: function() {
-                    if (window.console && typeof console.log === "function") {
-                        console.log("chart rendered");
-                    }
-                }
+            makeGanttChart();
+
+            $('form#ganttControl').submit(function() {
+                makeGanttChart();
+                return false;
             });
 
             $(".gantt").popover({
@@ -590,6 +607,122 @@ values: [
             prettyPrint();
 
         });
+
+        function makeGanttChart() {
+            var itemsPerPage = parseInt($('#itemsPerPage').val(), 10);
+            var navigate = $('#navigate').val();
+            var navigationPosition = $('#navigationPosition').val();
+            var scale = $('#scale').val();
+            var minScale = $('#minScale').val();
+            var maxScale = $('#maxScale').val();
+            var scrollToToday = $('#scrollToToday').val() === "true" ? true : false;
+            var highlightRow = $('#highlightRow').val() === "true" ? true : false;
+            var snapToGrid = $('#snapToGrid').val() === "true" ? true : false;
+
+            $(".gantt").gantt({
+                source: [{
+                    name: "Sprint 0",
+                    desc: "Analysis",
+                    values: [{
+                        from: "/Date(1446336000000)/",
+                        to: "/Date(1448545600000)/",
+                        label: "Requirement Gathering",
+                        customClass: "ganttRed"
+                    }]
+                },{
+                    desc: "Scoping",
+                    values: [{
+                        from: "/Date(1448755200000)/",
+                        to: "/Date(1449446400000)/",
+                        label: "Scoping",
+                        customClass: "ganttRed"
+                    }]
+                },{
+                    name: "Sprint 1",
+                    desc: "Development",
+                    values: [{
+                        from: "/Date(1449946400000)/",
+                        to: "/Date(1451829200000)/",
+                        label: "Development",
+                        customClass: "ganttGreen"
+                    }]
+                },{
+                    name: " ",
+                    desc: "Showcasing",
+                    values: [{
+                        from: "/Date(1451829200000)/",
+                        to: "/Date(1451839200000)/",
+                        label: "Showcasing",
+                        customClass: "ganttBlue"
+                    }]
+                },{
+                    name: "Sprint 2",
+                    desc: "Development",
+                    values: [{
+                        from: "/Date(1452929200000)/",
+                        to: "/Date(1453929200000)/",
+                        label: "Development",
+                        customClass: "ganttGreen"
+                    }]
+                },{
+                    desc: "Showcasing",
+                    values: [{
+                        from: "/Date(1454929200000)/",
+                        to: "/Date(1455049200000)/",
+                        label: "Showcasing",
+                        customClass: "ganttBlue"
+                    }]
+                },{
+                    name: "Release Stage",
+                    desc: "Training",
+                    values: [{
+                        from: "/Date(1456155200000)/",
+                        to: "/Date(1462755200000)/",
+                        label: "Training",
+                        customClass: "ganttOrange"
+                    }]
+                },{
+                    desc: "Deployment",
+                    values: [{
+                        from: "/Date(1462755200000)/",
+                        to: "/Date(1464855200000)/",
+                        label: "Deployment",
+                        customClass: "ganttOrange"
+                    }]
+                },{
+                    desc: "Warranty Period",
+                    values: [{
+                        from: "/Date(1462755200000)/",
+                        to: "/Date(1475855200000)/",
+                        label: "Warranty Period",
+                        customClass: "ganttOrange"
+                    }]
+                }],
+                navigate: navigate, // "scroll"
+                navigationPosition: navigationPosition, // bottom
+                scale: scale, // "weeks"
+                maxScale: maxScale, // "months"
+                minScale: minScale, // "hours"
+                itemsPerPage: itemsPerPage, // 10
+                itemsPerPageSelect: [5, 10, 20],
+                useCookie: true,
+                scrollToToday: scrollToToday, // true
+                onItemClick: function(data) {
+                    alert("Item clicked - show some details");
+                },
+                onAddClick: function(dt, rowId) {
+                    alert("Empty space clicked - add an item!");
+                },
+                onRender: function() {
+                    if (window.console && typeof console.log === "function") {
+                        console.log("chart rendered");
+                    }
+                },
+                highlightRow : highlightRow, // true
+                snapToGrid : snapToGrid // true
+            });
+
+        }
     </script>
 
     </body>
