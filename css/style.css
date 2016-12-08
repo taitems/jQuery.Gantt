@@ -44,6 +44,7 @@
 }
 
 .fn-gantt .row {
+    cursor:pointer;
     float: left;
     height: 24px;
     line-height: 24px;
@@ -183,6 +184,7 @@
 }
 
 .fn-gantt .bar {
+    cursor:pointer;
     background-color: #D0E4FD;
     height: 18px;
     margin: 0px 3px 3px 0px;
