@@ -63,9 +63,6 @@
     overflow: hidden;
 }
 
-.fn-gantt .leftPanel .row0 {
-    border-top: 1px solid #DDD;
-}
 .fn-gantt .leftPanel .name, .fn-gantt .leftPanel .desc {
     float: left;
     height: 23px;
@@ -88,8 +85,8 @@
 }
 
 .fn-gantt .spacer {
-    margin: -2px 0 1px 0;
-    border-bottom: none;
+    margin: -2px 0 0px 0;
+    border-bottom: 1px solid #DDD;
     background-color: #f6f6f6;
 }
 

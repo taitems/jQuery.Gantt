@@ -291,7 +291,7 @@
                 var headerRows = scaleGroupSttings[element.scaleGroup].headerRows;
                 var ganttLeftPanel = $('<div class="leftPanel"/>')
                     .append($('<div class="row spacer"/>')
-                    .css("height", tools.getCellSize() * headerRows)
+                    .css("height", (tools.getCellSize() * headerRows + 1 )) // 1 - for border
                     .css("width", "100%"));
 
                 $.each(element.data, function (i, entry) {
