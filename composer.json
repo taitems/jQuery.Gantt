@@ -1,0 +1,11 @@
+{
+    "name": "taitems/jquery-gantt",
+    "type": "library",
+    "version": "1.1.0",
+    "description": "jQuery Gantt Chart is a simple chart that implements gantt functionality as a jQuery component",
+    "license": "MIT",
+    "homepage": "http://taitems.github.io/jQuery.Gantt/",
+
+    "require": {
+    }
+}
