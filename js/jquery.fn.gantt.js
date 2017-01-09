@@ -1417,6 +1417,7 @@
                         $.cookie(settings.cookieKey + "ScrollPos", $dataPanel.css("left").replace("px", ""));
                     }
                 }, 500);
+                core.synchronizeScroller(element);
             },
 
             // waitToggle
