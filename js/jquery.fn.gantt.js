@@ -1262,31 +1262,24 @@
             sliderScroll: function (element, e) {
                 var $sliderBar = $(element).find(".nav-slider-bar");
                 var $sliderBarBtn = $sliderBar.find(".nav-slider-button");
-                var $rightPanel = $(element).find(".fn-gantt .rightPanel");
-                var $dataPanel = $rightPanel.find(".dataPanel");
+                var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
 
                 var bPos = $sliderBar.offset();
                 var bWidth = $sliderBar.width();
                 var wButton = $sliderBarBtn.width();
 
-                var pos;
+                var pos = e.pageX - bPos.left;
+                pos = pos < 0 ? 0 : pos;
+                pos = pos > bWidth ? bWidth : pos;
+                $sliderBarBtn.css("left", pos - wButton / 2);
 
-                if ((e.pageX >= bPos.left) && (e.pageX <= bPos.left + bWidth)) {
-                    pos = e.pageX - bPos.left;
-                    pos = pos - wButton / 2;
-                    $sliderBarBtn.css("left", pos);
+                var panelMargin = pos * element.scrollNavigation.panelMaxPos / bWidth;
 
-                    var panelMargin = pos * element.scrollNavigation.panelMaxPos / bWidth;
+                $dataPanel.css("margin-left", panelMargin);
 
-                    panelMargin = (panelMargin <= 0 ? panelMargin : 0);
-                    panelMargin = (panelMargin >= element.scrollNavigation.panelMaxPos ? panelMargin : element.scrollNavigation.panelMaxPos);
-
-                    $dataPanel.css("margin-left", panelMargin);
-
-                    core.switchScrollButton(element);
-                    clearTimeout(element.scrollNavigation.repositionDelay);
-                    element.scrollNavigation.repositionDelay = setTimeout(core.repositionLabel, 5, element);
-                }
+                core.switchScrollButton(element);
+                clearTimeout(element.scrollNavigation.repositionDelay);
+                element.scrollNavigation.repositionDelay = setTimeout(core.repositionLabel, 5, element);
             },
 
             // Update scroll panel margins
@@ -1310,22 +1303,19 @@
             // Synchronize scroller
             synchronizeScroller: function (element) {
                 if (settings.navigate !== "scroll") { return; }
-                var $rightPanel = $(element).find(".fn-gantt .rightPanel");
-                var $dataPanel = $rightPanel.find(".dataPanel");
+                var $dataPanel = $(element).find(".fn-gantt .rightPanel .dataPanel");
                 var $sliderBar = $(element).find(".nav-slider-bar");
                 var $sliderBtn = $sliderBar.find(".nav-slider-button");
 
                 var bWidth = $sliderBar.width();
                 var wButton = $sliderBtn.width();
 
-                var mLeft = $dataPanel.width() - $rightPanel.width();
                 var hPos = $dataPanel.css("margin-left") || 0;
                 if (hPos) {
                     hPos = hPos.replace("px", "");
                 }
-                var pos = hPos * bWidth / mLeft - $sliderBtn.width() * 0.25;
-                pos = pos > 0 ? 0 : (pos * -1 >= bWidth - (wButton * 0.75)) ? (bWidth - (wButton * 1.25)) * -1 : pos;
-                $sliderBtn.css("left", pos * -1);
+                var pos = hPos * bWidth / element.scrollNavigation.panelMaxPos;
+                $sliderBtn.css("left", pos - wButton/2);
             },
 
             // Reposition data labels
