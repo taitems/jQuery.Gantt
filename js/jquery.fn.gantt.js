@@ -183,6 +183,8 @@
             // navigation
             navigate: "buttons",
             scrollToToday: true,
+            nav: { page: true, bounds: true, week: true, day: true, now: true, zoom: true },
+            mouseScroll : true,
             // cookie options
             useCookie: false,
             cookieKey: "jquery.fn.gantt",
@@ -360,10 +362,12 @@
                 var dataPanel = $('<div class="dataPanel" style="width: ' + width + 'px;"/>');
 
                 // Handle mousewheel events for scrolling the data panel
-                var wheel = 'onwheel' in element ?
-                    'wheel' : document.onmousewheel !== undefined ?
-                    'mousewheel' : 'DOMMouseScroll';
-                $(element).on(wheel, function (e) { core.wheelScroll(element, e); });
+                if(settings.mouseScroll) {
+                    var wheel = 'onwheel' in element ?
+                        'wheel' : document.onmousewheel !== undefined ?
+                        'mousewheel' : 'DOMMouseScroll';
+                    $(element).on(wheel, function (e) { core.wheelScroll(element, e); });
+                }
 
                 // Handle click events and dispatch to registered `onAddClick` function
                 dataPanel.click(function (e) {
@@ -790,13 +794,21 @@
 
             // **Navigation**
             navigation: function (element) {
-                var ganttNavigate = null;
+                if(!(settings.nav.page || settings.nav.now || settings.nav.week || settings.nav.day || settings.nav.bounds || settings.nav.zoom)) {
+                    return;
+                }
+                var ganttNavigate = $('<div class="navigate" />');
                 // Scrolling navigation is provided by setting
                 // `settings.navigate='scroll'`
                 if (settings.navigate === "scroll") {
-                    ganttNavigate = $('<div class="navigate" />')
-                        .append($('<div class="nav-slider" />')
-                            .append($('<div class="nav-slider-left" />')
+                    var ganttSlider = $('<div class="nav-slider" />');
+
+                    //Left
+                    if(settings.nav.page || settings.nav.now || settings.nav.week || settings.nav.day) {
+                        var ganttNavigateLeft= $('<div class="nav-slider-left" />');
+
+                        if(settings.nav.page) {
+                            ganttNavigateLeft
                                 .append($('<button type="button" class="nav-link nav-page-back"/>')
                                     .html('&uarr;')
                                     .click(function () {
@@ -809,13 +821,17 @@
                                     .html('&darr;')
                                     .click(function () {
                                         core.navigatePage(element, 1);
-                                    }))
-                                .append($('<button type="button" class="nav-link nav-now"/>')
+                                }));
+                        }
+                        if(settings.nav.now) {
+                            ganttNavigateLeft.append($('<button type="button" class="nav-link nav-now"/>')
                                     .html('&#9679;')
                                     .click(function () {
                                         core.navigateTo(element, 'now');
-                                    }))
-                                .append($('<button type="button" class="nav-link nav-prev-week"/>')
+                                    }));
+                        }
+                        if(settings.nav.week) {
+                            ganttNavigateLeft.append($('<button type="button" class="nav-link nav-prev-week"/>')
                                     .html('&lt;&lt;')
                                     .click(function () {
                                         if (settings.scale === 'hours') {
@@ -827,8 +843,10 @@
                                         } else if (settings.scale === 'months') {
                                             core.navigateTo(element, tools.getCellSize() * 6);
                                         }
-                                    }))
-                                .append($('<button type="button" class="nav-link nav-prev-day"/>')
+                                    }));
+                        }
+                        if(settings.nav.day) {
+                            ganttNavigateLeft.append($('<button type="button" class="nav-link nav-prev-day"/>')
                                     .html('&lt;')
                                     .click(function () {
                                         if (settings.scale === 'hours') {
@@ -840,25 +858,37 @@
                                         } else if (settings.scale === 'months') {
                                             core.navigateTo(element, tools.getCellSize() * 3);
                                         }
-                                    })))
-                            .append($('<div class="nav-slider-content" />')
-                                    .append($('<div class="nav-slider-bar" />')
-                                            .append($('<a class="nav-slider-button" />')
-                                                )
-                                                .mousedown(function (e) {
-                                                    e.preventDefault();
-                                                    element.scrollNavigation.scrollerMouseDown = true;
-                                                    core.sliderScroll(element, e);
-                                                })
-                                                .mousemove(function (e) {
-                                                    if (element.scrollNavigation.scrollerMouseDown) {
-                                                        core.sliderScroll(element, e);
-                                                    }
-                                                })
-                                            )
+                                    }));
+                        }
+
+                        ganttSlider.append(ganttNavigateLeft);
+                    }
+
+                    if(settings.nav.bounds) {
+                        ganttSlider.append($('<div class="nav-slider-content" />')
+                                .append($('<div class="nav-slider-bar" />')
+                                        .append($('<a class="nav-slider-button" />')
                                         )
-                            .append($('<div class="nav-slider-right" />')
-                                .append($('<button type="button" class="nav-link nav-next-day"/>')
+                                        .mousedown(function (e) {
+                                            e.preventDefault();
+                                            element.scrollNavigation.scrollerMouseDown = true;
+                                            core.sliderScroll(element, e);
+                                        })
+                                        .mousemove(function (e) {
+                                            if (element.scrollNavigation.scrollerMouseDown) {
+                                                core.sliderScroll(element, e);
+                                            }
+                                        })
+                                )
+                        );
+                    }
+
+                    // Right
+                    if(settings.nav.day || settings.nav.week || settings.nav.zoom) {
+                        var ganttNavigateRight= $('<div class="nav-slider-right" />');
+
+                        if(settings.nav.day) {
+                            ganttNavigateRight.append($('<button type="button" class="nav-link nav-next-day"/>')
                                     .html('&gt;')
                                     .click(function () {
                                         if (settings.scale === 'hours') {
@@ -870,8 +900,10 @@
                                         } else if (settings.scale === 'months') {
                                             core.navigateTo(element, tools.getCellSize() * -3);
                                         }
-                                    }))
-                            .append($('<button type="button" class="nav-link nav-next-week"/>')
+                                    }));
+                        }
+                        if(settings.nav.week) {
+                            ganttNavigateRight.append($('<button type="button" class="nav-link nav-next-week"/>')
                                     .html('&gt;&gt;')
                                     .click(function () {
                                         if (settings.scale === 'hours') {
@@ -883,25 +915,34 @@
                                         } else if (settings.scale === 'months') {
                                             core.navigateTo(element, tools.getCellSize() * -6);
                                         }
-                                    }))
-                                .append($('<button type="button" class="nav-link nav-zoomIn"/>')
+                                    }));
+                        }
+                        if(settings.nav.zoom) {
+                            ganttNavigateRight.append($('<button type="button" class="nav-link nav-zoomIn"/>')
                                     .html('&#43;')
                                     .click(function () {
                                         core.zoomInOut(element, -1);
                                     }))
-                                .append($('<button type="button" class="nav-link nav-zoomOut"/>')
-                                    .html('&#45;')
-                                    .click(function () {
-                                        core.zoomInOut(element, 1);
-                                    }))
-                                    )
-                                );
+                                    .append($('<button type="button" class="nav-link nav-zoomOut"/>')
+                                            .html('&#45;')
+                                            .click(function () {
+                                                core.zoomInOut(element, 1);
+                                            }));
+                        }
+
+                        ganttSlider.append(ganttNavigateRight);
+                    }
+
+                    ganttNavigate.append(ganttSlider);
+
                     $(document).mouseup(function () {
                         element.scrollNavigation.scrollerMouseDown = false;
                     });
-                // Button navigation is provided by setting `settings.navigation='buttons'`
+                    // Button navigation is provided by setting
+                    // `settings.navigation='buttons'`
                 } else {
-                    ganttNavigate = $('<div class="navigate" />')
+                    if(settings.nav.page) {
+                        ganttNavigate
                         .append($('<button type="button" class="nav-link nav-page-back"/>')
                             .html('&uarr;')
                             .click(function () {
@@ -914,42 +955,59 @@
                             .html('&darr;')
                             .click(function () {
                                 core.navigatePage(element, 1);
-                            }))
-                        .append($('<button type="button" class="nav-link nav-begin"/>')
-                            .html('&#124;&lt;')
-                            .click(function () {
-                                core.navigateTo(element, 'begin');
-                            }))
-                        .append($('<button type="button" class="nav-link nav-prev-week"/>')
-                            .html('&lt;&lt;')
-                            .click(function () {
-                                core.navigateTo(element, tools.getCellSize() * 7);
-                            }))
-                        .append($('<button type="button" class="nav-link nav-prev-day"/>')
-                            .html('&lt;')
-                            .click(function () {
-                                core.navigateTo(element, tools.getCellSize());
-                            }))
-                        .append($('<button type="button" class="nav-link nav-now"/>')
-                            .html('&#9679;')
-                            .click(function () {
-                                core.navigateTo(element, 'now');
-                            }))
-                        .append($('<button type="button" class="nav-link nav-next-day"/>')
-                            .html('&gt;')
-                            .click(function () {
-                                core.navigateTo(element, tools.getCellSize() * -1);
-                            }))
-                        .append($('<button type="button" class="nav-link nav-next-week"/>')
-                            .html('&gt;&gt;')
-                            .click(function () {
-                                core.navigateTo(element, tools.getCellSize() * -7);
-                            }))
-                        .append($('<button type="button" class="nav-link nav-end"/>')
-                            .html('&gt;&#124;')
-                            .click(function () {
-                                core.navigateTo(element, 'end');
-                            }))
+                            }));
+                    }
+                    if(settings.nav.bounds) {
+                        ganttNavigate.append($('<button type="button" class="nav-link nav-begin"/>')
+                                .html('&#124;&lt;')
+                                .click(function () {
+                                    core.navigateTo(element, 'begin');
+                                }));
+                    }
+                    if(settings.nav.week) {
+                        ganttNavigate.append($('<button type="button" class="nav-link nav-prev-week"/>')
+                                .html('&lt;&lt;')
+                                .click(function () {
+                                    core.navigateTo(element, tools.getCellSize() * 7);
+                                }));
+                    }
+                    if(settings.nav.day) {
+                        ganttNavigate.append($('<button type="button" class="nav-link nav-prev-day"/>')
+                                .html('&lt;')
+                                .click(function () {
+                                    core.navigateTo(element, tools.getCellSize());
+                                }));
+                    }
+                    if(settings.nav.now) {
+                        ganttNavigate.append($('<button type="button" class="nav-link nav-now"/>')
+                                .html('&#9679;')
+                                .click(function () {
+                                    core.navigateTo(element, 'now');
+                                }));
+                    }
+                    if(settings.nav.day) {
+                        ganttNavigate.append($('<button type="button" class="nav-link nav-next-day"/>')
+                                .html('&gt;')
+                                .click(function () {
+                                    core.navigateTo(element, tools.getCellSize() * -1);
+                                }));
+                    }
+                    if(settings.nav.week) {
+                        ganttNavigate.append($('<button type="button" class="nav-link nav-next-week"/>')
+                                .html('&gt;&gt;')
+                                .click(function () {
+                                    core.navigateTo(element, tools.getCellSize() * -7);
+                                }));
+                    }
+                    if(settings.nav.bounds) {
+                        ganttNavigate.append($('<button type="button" class="nav-link nav-end"/>')
+                                .html('&gt;&#124;')
+                                .click(function () {
+                                    core.navigateTo(element, 'end');
+                                }));
+                    }
+                    if(settings.nav.zoom) {
+                        ganttNavigate
                         .append($('<button type="button" class="nav-link nav-zoomIn"/>')
                             .html('&#43;')
                             .click(function () {
@@ -960,6 +1018,7 @@
                             .click(function () {
                                 core.zoomInOut(element, 1);
                             }));
+                    }
                 }
                 return $('<div class="bottom"></div>').append(ganttNavigate);
             },
