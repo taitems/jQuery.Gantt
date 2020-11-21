@@ -1432,6 +1432,9 @@
                 var maxDate = null;
                 $.each(element.data, function (i, entry) {
                     $.each(entry.values, function (i, date) {
+                        if (isNaN(tools.dateDeserialize(date.to))) {
+                            return ;
+                        }
                         maxDate = maxDate < tools.dateDeserialize(date.to) ? tools.dateDeserialize(date.to) : maxDate;
                     });
                 });
@@ -1468,6 +1471,9 @@
                 var minDate = null;
                 $.each(element.data, function (i, entry) {
                     $.each(entry.values, function (i, date) {
+                        if (isNaN(tools.dateDeserialize(date.from))) {
+                            return ;
+                        }
                         minDate = minDate > tools.dateDeserialize(date.from) ||
                             minDate === null ? tools.dateDeserialize(date.from) : minDate;
                     });
