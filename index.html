@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
     <head>
         <title>jQuery.Gantt</title>
@@ -280,6 +280,14 @@ $(".selector").gantt({
                     <tr>
                         <td>
                             <code>scrollToToday</code></td>
+                        <td>
+                            <code>true</code></td>
+                        <td>
+                            Boolean</td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <code>highlightRow</code></td>
                         <td>
                             <code>true</code></td>
                         <td>
@@ -604,7 +612,8 @@ values: [
                     if (window.console && typeof console.log === "function") {
                         console.log("chart rendered");
                     }
-                }
+                },
+                highlightRow : false
             });
 
             $(".gantt").popover({
